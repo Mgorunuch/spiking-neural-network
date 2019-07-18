@@ -78,6 +78,31 @@ def create_base_neurons_function(x, y, z):
     return neuron.Neuron(x, y, z, None, 0)
 
 
+# Временная переменная для хранения данных
+TMP_created_connections = {}
+
+
+# Фунция для создания соединения
+def create_connection_function(from_neuron, to_neuron):
+    from_key = from_neuron.get_raw_string_location()
+    to_key = to_neuron.get_raw_string_location()
+
+    # Проверяем создавали ли мы такое же соединеник
+    if from_key + "-" + to_key in TMP_created_connections:
+        return None
+
+    # Проверяем создавали ли мы обратное соединеник
+    if to_key + "-" + from_key in TMP_created_connections:
+        return None
+
+    # Если соединений не создавали. Создаем соединение и записываем во временную переменную
+    TMP_created_connections[from_key + "-" + to_key] = True
+    return neuron_connection.NeuronConnection(
+        from_neuron=from_neuron,
+        to_neuron=to_neuron,
+    )
+
+
 input_neurons = neurolocator.Neurolocator.create_input_neurons(
     create_neuron_function=create_input_neuron_function,
     count_per_row=INPUT_NEURONS_COUNT_PER_ROW,
@@ -118,30 +143,6 @@ for nr in range(len(output_neurons)):
 
 for nr in range(len(base_neurons)):
     br.attach_neuron(base_neurons[nr])
-
-
-# Временная переменная для хранения данных
-TMP_created_connections = {}
-
-
-def create_connection_function(from_neuron, to_neuron):
-    from_key = from_neuron.get_raw_string_location()
-    to_key = to_neuron.get_raw_string_location()
-
-    # Проверяем создавали ли мы такое же соединеник
-    if from_key + "-" + to_key in TMP_created_connections:
-        return None
-
-    # Проверяем создавали ли мы обратное соединеник
-    if to_key + "-" + from_key in TMP_created_connections:
-        return None
-
-    # Если соединений не создавали. Создаем соединение и записываем во временную переменную
-    TMP_created_connections[from_key + "-" + to_key] = True
-    return neuron_connection.NeuronConnection(
-        from_neuron=from_neuron,
-        to_neuron=to_neuron,
-    )
 
 
 all_connections = []
@@ -213,3 +214,8 @@ del base_neurons
 del TMP_created_connections
 
 print(br)
+
+# TODO: Сделать в v3.classes.Neuron функцию обработки входящего сигнала
+# TODO: Сделать в v3.classes.Neuron функцию проверии наличия спайка
+# TODO: Продумать создание асинхронного запускатора (возможно класс AsyncBrain)
+# TODO: Продумать обработки нейрогенеза и нейропластичности
