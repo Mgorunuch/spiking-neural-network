@@ -63,19 +63,73 @@ if isinstance(DECODER, decoder.Decoder) is not True:
     raise Exception("ENCODER не наследник класса Encoder")
 
 
+def neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = 1000
+    neuron_instance.power_damping_ms = 1 / 1000
+    neuron_instance.base_power_level = 100
+    neuron_instance.power = neuron_instance.base_power_level
+
+
+def neuron_apply_signal_function(neuron_instance, signal):
+    neuron_instance.power = signal.power
+
+
+def neuron_check_spike_function(neuron_instance):
+    return neuron_instance.power >= neuron_instance.spike_activation_power
+
+
+def neuron_inactivity_function(neuron_instance, ms_passed):
+    if neuron_instance.power <= neuron_instance.base_power_level:
+        return
+
+    potential_damp_power = ms_passed * neuron_instance.power_damping_ms
+    can_damp_power = neuron_instance.power - neuron_instance.base_power_level
+    if potential_damp_power >= can_damp_power:
+        neuron_instance.power = neuron_instance.base_power_level
+        return
+
+    neuron_instance.power = neuron_instance.power - potential_damp_power
+
+
 def create_input_neuron_function(x, y, z):
     # Входные нейроны не будут просчитываться через функцию неактивности
-    return neuron.Neuron(x, y, z, None, 0)
+    return neuron.Neuron(
+        location_x=x,
+        location_y=y,
+        location_z=z,
+        set_up_function=neuron_set_up_function,
+        inactivity_function=neuron_inactivity_function,
+        apply_signal_function=neuron_apply_signal_function,
+        check_spike_function=neuron_check_spike_function,
+        current_milliseconds=0,
+    )
 
 
 def create_output_neuron_function(x, y, z):
     # Выходные нейроны не будут просчитываться через функцию неактивности
-    return neuron.Neuron(x, y, z, None, 0)
+    return neuron.Neuron(
+        location_x=x,
+        location_y=y,
+        location_z=z,
+        set_up_function=neuron_set_up_function,
+        inactivity_function=neuron_inactivity_function,
+        apply_signal_function=neuron_apply_signal_function,
+        check_spike_function=neuron_check_spike_function,
+        current_milliseconds=0,
+    )
 
 
 def create_base_neurons_function(x, y, z):
-    # TODO: Сделать функцию просчета ожидания
-    return neuron.Neuron(x, y, z, None, 0)
+    return neuron.Neuron(
+        location_x=x,
+        location_y=y,
+        location_z=z,
+        set_up_function=neuron_set_up_function,
+        inactivity_function=neuron_inactivity_function,
+        apply_signal_function=neuron_apply_signal_function,
+        check_spike_function=neuron_check_spike_function,
+        current_milliseconds=0,
+    )
 
 
 # Временная переменная для хранения данных
@@ -213,9 +267,5 @@ del all_connections
 del base_neurons
 del TMP_created_connections
 
-print(br)
-
-# TODO: Сделать в v3.classes.Neuron функцию обработки входящего сигнала
-# TODO: Сделать в v3.classes.Neuron функцию проверии наличия спайка
 # TODO: Продумать создание асинхронного запускатора (возможно класс AsyncBrain)
 # TODO: Продумать обработки нейрогенеза и нейропластичности
