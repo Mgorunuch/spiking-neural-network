@@ -2,6 +2,10 @@ from v3.core import neurolocator
 from v3.classes import neuron
 from v3.classes import brain
 from v3.classes import neuron_connection
+from v3.receptors.encoders import text_message_encoder
+from v3.receptors.decoders import text_message_decoder
+from v3.receptors import encoder
+from v3.receptors import decoder
 
 MAIN_X_COORD = 0
 MAIN_Y_COORD = 0
@@ -45,6 +49,18 @@ BASE_NEURONS_Z_TO = MAIN_Z_TO - BASE_NEURONS_Z_REMOTENESS
 # Настройка соединений базовых нейронов
 BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 20
 BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+
+
+ENCODER = text_message_encoder.TextMessageEncoder()
+DECODER = text_message_decoder.TextMessageDecoder()
+
+# Проверка валидности енкодера
+if isinstance(ENCODER, encoder.Encoder) is not True:
+    raise Exception("ENCODER не наследник класса Encoder")
+
+# Проверка валидности декодера
+if isinstance(DECODER, decoder.Decoder) is not True:
+    raise Exception("ENCODER не наследник класса Encoder")
 
 
 def create_input_neuron_function(x, y, z):
