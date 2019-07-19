@@ -49,6 +49,14 @@ class NeuronConnection:
         """
         self.last_activity = current_ms
 
+    def get_last_activity(self):
+        """
+        Функция преднаначена для получения времени последней активноти
+
+        :return: int
+        """
+        return self.last_activity
+
     def proceed(self, signal):
         """
         :param signal: класс v3.Signal

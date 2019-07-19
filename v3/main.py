@@ -1,7 +1,10 @@
+import queue
 from v3.core import neurolocator
 from v3.classes import neuron
 from v3.classes import brain
 from v3.classes import neuron_connection
+from v3.classes import neuro_thread
+from v3.classes import signal
 from v3.receptors.encoders import text_message_encoder
 from v3.receptors.decoders import text_message_decoder
 from v3.receptors import encoder
@@ -21,6 +24,9 @@ INPUT_COORD_OFFSET = {
     "y": MAIN_Y_COORD,
     "z": MAIN_Z_FROM,
 }
+INPUT_NEURON_SPIKE_ACTIVATION_POWER = 1000
+INPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
+INPUT_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений входных нейронов
 INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 0
 INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
@@ -34,6 +40,9 @@ OUTPUT_COORD_OFFSET = {
     "y": MAIN_Y_COORD,
     "z": MAIN_Z_TO,
 }
+OUTPUT_NEURON_SPIKE_ACTIVATION_POWER = 1000
+OUTPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
+OUTPUT_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений исходящих нейронов
 OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 100
 OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
@@ -46,6 +55,9 @@ BASE_NEURONS_Y_TO = INPUT_NEURONS_COUNT_PER_ROW * INPUT_NEURON_REMOTENESS - BASE
 BASE_NEURONS_Z_REMOTENESS = 5
 BASE_NEURONS_Z_FROM = MAIN_Z_FROM + BASE_NEURONS_Z_REMOTENESS
 BASE_NEURONS_Z_TO = MAIN_Z_TO - BASE_NEURONS_Z_REMOTENESS
+BASE_NEURON_SPIKE_ACTIVATION_POWER = 1000
+BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 100
+BASE_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений базовых нейронов
 BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 20
 BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
@@ -63,18 +75,38 @@ if isinstance(DECODER, decoder.Decoder) is not True:
     raise Exception("ENCODER не наследник класса Encoder")
 
 
-def neuron_set_up_function(neuron_instance):
-    neuron_instance.spike_activation_power = 1000
-    neuron_instance.power_damping_ms = 1 / 1000
-    neuron_instance.base_power_level = 100
+def input_neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = INPUT_NEURON_SPIKE_ACTIVATION_POWER
+    neuron_instance.power_damping_ms = INPUT_NEURON_POWER_DUMPING_PER_MS
+    neuron_instance.base_power_level = INPUT_NEURON_BASE_POWER_LEVEL
     neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = neuron_instance.last_activity
 
 
-def neuron_apply_signal_function(neuron_instance, signal):
+def output_neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = OUTPUT_NEURON_SPIKE_ACTIVATION_POWER
+    neuron_instance.power_damping_ms = OUTPUT_NEURON_POWER_DUMPING_PER_MS
+    neuron_instance.base_power_level = OUTPUT_NEURON_BASE_POWER_LEVEL
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = neuron_instance.last_activity
+
+
+def base_neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = BASE_NEURON_SPIKE_ACTIVATION_POWER
+    neuron_instance.power_damping_ms = BASE_NEURON_POWER_DUMPING_PER_MS
+    neuron_instance.base_power_level = BASE_NEURON_BASE_POWER_LEVEL
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = neuron_instance.last_activity
+
+
+def neuron_apply_signal_function(neuron_instance, signal, current_ms):
+    if neuron_instance.inactive_to_ms > current_ms:
+        return
+
     neuron_instance.power = signal.power
 
 
-def neuron_check_spike_function(neuron_instance):
+def neuron_check_spike_function(neuron_instance, current_ms):
     return neuron_instance.power >= neuron_instance.spike_activation_power
 
 
@@ -91,17 +123,29 @@ def neuron_inactivity_function(neuron_instance, ms_passed):
     neuron_instance.power = neuron_instance.power - potential_damp_power
 
 
+def get_spike_power_function(neuron_instance):
+    return neuron_instance.base_power_level
+
+
+def neuron_after_spike_function(neuron_instance, current_ms):
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = current_ms + 1000
+
+
 def create_input_neuron_function(x, y, z):
     # Входные нейроны не будут просчитываться через функцию неактивности
     return neuron.Neuron(
         location_x=x,
         location_y=y,
         location_z=z,
-        set_up_function=neuron_set_up_function,
+        set_up_function=input_neuron_set_up_function,
         inactivity_function=neuron_inactivity_function,
         apply_signal_function=neuron_apply_signal_function,
         check_spike_function=neuron_check_spike_function,
         current_milliseconds=0,
+        before_spike_function=None,
+        after_spike_function=neuron_after_spike_function,
+        get_spike_power_function=get_spike_power_function,
     )
 
 
@@ -111,11 +155,14 @@ def create_output_neuron_function(x, y, z):
         location_x=x,
         location_y=y,
         location_z=z,
-        set_up_function=neuron_set_up_function,
+        set_up_function=output_neuron_set_up_function,
         inactivity_function=neuron_inactivity_function,
         apply_signal_function=neuron_apply_signal_function,
         check_spike_function=neuron_check_spike_function,
         current_milliseconds=0,
+        before_spike_function=None,
+        after_spike_function=neuron_after_spike_function,
+        get_spike_power_function=get_spike_power_function,
     )
 
 
@@ -124,16 +171,24 @@ def create_base_neurons_function(x, y, z):
         location_x=x,
         location_y=y,
         location_z=z,
-        set_up_function=neuron_set_up_function,
+        set_up_function=base_neuron_set_up_function,
         inactivity_function=neuron_inactivity_function,
         apply_signal_function=neuron_apply_signal_function,
         check_spike_function=neuron_check_spike_function,
         current_milliseconds=0,
+        before_spike_function=None,
+        after_spike_function=neuron_after_spike_function,
+        get_spike_power_function=get_spike_power_function,
     )
 
 
 # Временная переменная для хранения данных
 TMP_created_connections = {}
+
+
+# Функция проработки сигнала в соединении
+def connection_proceed_function(connection_instance, signal):
+    connection_instance.to_neuron.get_thread().get_queue().put(signal)
 
 
 # Фунция для создания соединения
@@ -154,6 +209,7 @@ def create_connection_function(from_neuron, to_neuron):
     return neuron_connection.NeuronConnection(
         from_neuron=from_neuron,
         to_neuron=to_neuron,
+        proceed_function=connection_proceed_function,
     )
 
 
@@ -262,10 +318,24 @@ for neuron in output_neurons:
 for connection in all_connections:
     connection.from_neuron.attach_connection(connection)
 
+# Создаем потоки для запуска мозга
+for neuron in input_neurons + base_neurons + output_neurons:
+    q = queue.Queue()
+    thread = neuro_thread.NeuroThread(q, neuron, br)
+    neuron.set_thread(thread)
+
+# Запускаем мозг
+for neuron in input_neurons + base_neurons + output_neurons:
+    neuron.register_activity(br.get_current_ms())
+    neuron.get_thread().start()
+
 # Удаляем слежебные переменные
 del all_connections
 del base_neurons
 del TMP_created_connections
 
-# TODO: Продумать создание асинхронного запускатора (возможно класс AsyncBrain)
+
+for neuron in input_neurons:
+    neuron.get_thread().get_queue().put(signal.Signal(10000))
+
 # TODO: Продумать обработки нейрогенеза и нейропластичности
