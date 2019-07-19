@@ -14,4 +14,6 @@ class NeuroThread(threading.Thread):
 
     def run(self):
         while True:
-            self.brain.thread_run(self)
+            # Получаем сигнал
+            input_signal = self.queue.get()
+            self.brain.thread_run(self, input_signal)

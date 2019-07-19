@@ -55,9 +55,9 @@ BASE_NEURONS_Y_TO = INPUT_NEURONS_COUNT_PER_ROW * INPUT_NEURON_REMOTENESS - BASE
 BASE_NEURONS_Z_REMOTENESS = 5
 BASE_NEURONS_Z_FROM = MAIN_Z_FROM + BASE_NEURONS_Z_REMOTENESS
 BASE_NEURONS_Z_TO = MAIN_Z_TO - BASE_NEURONS_Z_REMOTENESS
-BASE_NEURON_SPIKE_ACTIVATION_POWER = 1000
-BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 100
-BASE_NEURON_BASE_POWER_LEVEL = 100
+BASE_NEURON_SPIKE_ACTIVATION_POWER = 200
+BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 1000
+BASE_NEURON_BASE_POWER_LEVEL = 150
 # Настройка соединений базовых нейронов
 BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 20
 BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
@@ -99,11 +99,11 @@ def base_neuron_set_up_function(neuron_instance):
     neuron_instance.inactive_to_ms = neuron_instance.last_activity
 
 
-def neuron_apply_signal_function(neuron_instance, signal, current_ms):
+def neuron_apply_signal_function(neuron_instance, input_signal, current_ms):
     if neuron_instance.inactive_to_ms > current_ms:
         return
 
-    neuron_instance.power = signal.power
+    neuron_instance.power += input_signal.power
 
 
 def neuron_check_spike_function(neuron_instance, current_ms):
@@ -187,8 +187,8 @@ TMP_created_connections = {}
 
 
 # Функция проработки сигнала в соединении
-def connection_proceed_function(connection_instance, signal):
-    connection_instance.to_neuron.get_thread().get_queue().put(signal)
+def connection_proceed_function(connection_instance, output_signal):
+    connection_instance.to_neuron.get_thread().get_queue().put(output_signal)
 
 
 # Фунция для создания соединения
@@ -338,4 +338,5 @@ del TMP_created_connections
 for neuron in input_neurons:
     neuron.get_thread().get_queue().put(signal.Signal(10000))
 
+# TODO: Проверить распространение сигнала!
 # TODO: Продумать обработки нейрогенеза и нейропластичности

@@ -147,6 +147,6 @@ class Neuron:
         :return: int
         """
         if self.get_spike_power_function is not None:
-            self.get_spike_power_function(self)
+            return self.get_spike_power_function(self)
 
         return 0

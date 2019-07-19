@@ -1,5 +1,8 @@
 from v3 import helpers
 from v3.classes import signal
+import threading
+
+print_lock = threading.Lock()
 
 
 class Brain:
@@ -31,27 +34,25 @@ class Brain:
 
         helpers.detach_from_dict_by_key(self.neurons, loc)
 
-    def thread_run(self, neuro_thread):
+    def thread_run(self, neuro_thread, input_signal):
         """
         Функция итерации треада
 
         :param neuro_thread: v3.NeuroThread
+        :param input_signal: v3.Signal
         :return: None
         """
-
-        # Получаем сигнал
-        input_signal = neuro_thread.queue.get()
 
         # Вспомогательные переменные
         neuron = neuro_thread.neuron
         current_ms = self.get_current_ms()
 
-        # Применяем входящий сигнал
-        neuron.apply_input_signal(input_signal, current_ms)
-
         # Просчитываем неактивность нейрона
         ms_passed = current_ms - neuron.get_last_activity()
         neuron.proceed_inactivity(ms_passed)
+
+        # Применяем входящий сигнал
+        neuron.apply_input_signal(input_signal, current_ms)
 
         # Проверяем спайк
         has_spike = neuron.has_spike(current_ms)
@@ -75,7 +76,8 @@ class Brain:
                 # Регистрируем активность в соединении
                 connection.register_activity(current_ms)
 
-            print("SPIKE!")
+            with print_lock:
+                print("SPIKE! at " + neuron.get_raw_string_location())
 
             # Заканчиваем работу со спайком
             neuron.after_spike(current_ms)
