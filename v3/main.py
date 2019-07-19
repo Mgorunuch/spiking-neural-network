@@ -338,5 +338,4 @@ del TMP_created_connections
 for neuron in input_neurons:
     neuron.get_thread().get_queue().put(signal.Signal(10000))
 
-# TODO: Проверить распространение сигнала!
 # TODO: Продумать обработки нейрогенеза и нейропластичности
