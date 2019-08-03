@@ -9,6 +9,10 @@ from v3.receptors.encoders import text_message_encoder
 from v3.receptors.decoders import text_message_decoder
 from v3.receptors import encoder
 from v3.receptors import decoder
+from v3 import generators
+import threading
+
+print_lock = threading.Lock()
 
 MAIN_X_COORD = 0
 MAIN_Y_COORD = 0
@@ -132,6 +136,11 @@ def neuron_after_spike_function(neuron_instance, current_ms):
     neuron_instance.inactive_to_ms = current_ms + 1000
 
 
+def output_neuron_after_spike_function(neuron_instance, current_ms):
+    with print_lock:
+        print("Output spike!")
+
+
 def create_input_neuron_function(x, y, z):
     # Входные нейроны не будут просчитываться через функцию неактивности
     return neuron.Neuron(
@@ -146,6 +155,8 @@ def create_input_neuron_function(x, y, z):
         before_spike_function=None,
         after_spike_function=neuron_after_spike_function,
         get_spike_power_function=get_spike_power_function,
+        is_output=False,
+        is_input=True,
     )
 
 
@@ -161,8 +172,10 @@ def create_output_neuron_function(x, y, z):
         check_spike_function=neuron_check_spike_function,
         current_milliseconds=0,
         before_spike_function=None,
-        after_spike_function=neuron_after_spike_function,
+        after_spike_function=output_neuron_after_spike_function,
         get_spike_power_function=get_spike_power_function,
+        is_output=True,
+        is_input=False,
     )
 
 
@@ -179,6 +192,8 @@ def create_base_neurons_function(x, y, z):
         before_spike_function=None,
         after_spike_function=neuron_after_spike_function,
         get_spike_power_function=get_spike_power_function,
+        is_output=False,
+        is_input=False,
     )
 
 
@@ -295,24 +310,16 @@ for neuron in base_neurons:
 
     all_connections = all_connections + connections
 
-# Прорабатываем соединения для исходящих нейронов
-for neuron in output_neurons:
-    allowed_ranges = neurolocator.Neurolocator.get_allowed_connection_ranges(
-        c_x=int(neuron.location["x"]),
-        c_y=int(neuron.location["y"]),
-        c_z=int(neuron.location["z"]),
-        remoteness=OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+"""
+    # Прорабатываем соединения для исходящих нейронов
+    all_connections += generators.generate_output_neurons_connections(
+        output_neurons=output_neurons,
+        output_neurons_connection_generation_remoteness=OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+        utput_neurons_back_connection_generation_percent=OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+        create_connection_function=create_connection_function,
+        brain=br,
     )
-    allowed_neurons = neurolocator.Neurolocator.get_allowed_neurons_in_ranges(allowed_ranges, br.neurons)
-
-    connections = neurolocator.Neurolocator.get_connections(
-        from_neuron=neuron,
-        to_neurons=allowed_neurons,
-        back_generation_percent=OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
-        create_connection_function=create_connection_function
-    )
-
-    all_connections = all_connections + connections
+"""
 
 # Разбрасываем соединения по нейронам
 for connection in all_connections:

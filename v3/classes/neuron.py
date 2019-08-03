@@ -11,6 +11,8 @@ class Neuron:
             before_spike_function=None,
             after_spike_function=None,
             get_spike_power_function=None,
+            is_output=False,
+            is_input=False,
             current_milliseconds=0,
     ):
         self.location = {
@@ -27,6 +29,8 @@ class Neuron:
         self.last_activity = current_milliseconds
         self.connections = {}
         self.thread = None
+        self.is_output = is_output
+        self.is_input = is_input
         if set_up_function is not None:
             set_up_function(self)
 
@@ -35,6 +39,12 @@ class Neuron:
 
     def set_thread(self, thread):
         self.thread = thread
+
+    def is_output_neuron(self):
+        return self.is_output
+
+    def is_input_neuron(self):
+        return self.is_input
 
     def get_raw_string_location(self, delimiter="."):
         """
