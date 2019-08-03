@@ -1,5 +1,6 @@
 import helpers
 import random
+from classes import location
 
 
 class Neurolocator:
@@ -23,7 +24,7 @@ class Neurolocator:
         :param x_offset: Базовый сдвиг по координате x
         :param y_offset: Базовый сдвиг по координате y
         :param z_offset: Базовый сдвиг по координате z
-        :return: []v3.Neuron
+        :return: []Neuron
         """
         neurons = []
         for row in range(rows):
@@ -55,7 +56,7 @@ class Neurolocator:
         :param x_offset: Базовый сдвиг по координате x
         :param y_offset: Базовый сдвиг по координате y
         :param z_offset: Базовый сдвиг по координате z
-        :return: []v3.Neuron
+        :return: []Neuron
         """
         neurons = []
         for row in range(rows):
@@ -146,7 +147,7 @@ class Neurolocator:
 
         :param ranges: Ренджи
         :param dict_neurons: Всего нейронов
-        :return: []v3.Neuron
+        :return: []Neuron
         """
         neurons = []
 
@@ -165,11 +166,11 @@ class Neurolocator:
         """
         Функция для создания соединений между нейронами
 
-        :param from_neuron: v3.Neuron с которым производится создание соединения
-        :param to_neurons: []v3.Neuron массив нейронов с которыми создаются соединения
+        :param from_neuron: Neuron с которым производится создание соединения
+        :param to_neurons: []Neuron массив нейронов с которыми создаются соединения
         :param back_generation_percent: Процент генерации обратного соединения
         :param create_connection_function: Функция для создания нейрона. Возврат None если не создаем соединеник
-        :return: []v3.NeuronConnection
+        :return: []NeuronConnection
         """
         connections = []
 
@@ -188,3 +189,40 @@ class Neurolocator:
                 connections.append(connection)
 
         return connections
+
+    @staticmethod
+    def get_connection_points(
+            from_location,
+            to_location,
+            connection_generation_frequency,
+    ):
+        """
+        Генерирует точки возможные точки соединения.
+
+        :param from_location: Начальная точка (ядро нейрона)
+        :param to_location: Конечная точка (конец аксона)
+        :param connection_generation_frequency: количество точек между началом и концом
+        :return: массив Location
+        """
+        connection_generation_frequency += 1
+
+        from_caret = from_location.get_caret()
+        to_caret = to_location.get_caret()
+
+        mult_increment = helpers.multiplier_increment(
+            from_caret,
+            to_caret,
+            connection_generation_frequency,
+        )
+
+        arr = []
+        for i in range(1, connection_generation_frequency):
+            arr.append(
+                location.Location(
+                    from_location.x * (mult_increment[0] * i),
+                    from_location.y * (mult_increment[1] * i),
+                    from_location.z * (mult_increment[2] * i),
+                )
+            )
+
+        return arr

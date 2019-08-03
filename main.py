@@ -1,6 +1,6 @@
 import queue
 from core import neurolocator
-from classes import neuron_connection, neuro_thread, signal, brain, neuron
+from classes import neuron_connection, neuro_thread, signal, brain, neuron, location
 from receptors.encoders import text_message_encoder
 from receptors.decoders import text_message_decoder
 from receptors import decoder, encoder
@@ -139,9 +139,11 @@ def output_neuron_after_spike_function(neuron_instance, current_ms):
 def create_input_neuron_function(x, y, z):
     # Входные нейроны не будут просчитываться через функцию неактивности
     return neuron.Neuron(
-        location_x=x,
-        location_y=y,
-        location_z=z,
+        location=location.Location(
+            x,
+            y,
+            z,
+        ),
         set_up_function=input_neuron_set_up_function,
         inactivity_function=neuron_inactivity_function,
         apply_signal_function=neuron_apply_signal_function,
@@ -158,9 +160,11 @@ def create_input_neuron_function(x, y, z):
 def create_output_neuron_function(x, y, z):
     # Выходные нейроны не будут просчитываться через функцию неактивности
     return neuron.Neuron(
-        location_x=x,
-        location_y=y,
-        location_z=z,
+        location=location.Location(
+            x,
+            y,
+            z,
+        ),
         set_up_function=output_neuron_set_up_function,
         inactivity_function=neuron_inactivity_function,
         apply_signal_function=neuron_apply_signal_function,
@@ -176,9 +180,11 @@ def create_output_neuron_function(x, y, z):
 
 def create_base_neurons_function(x, y, z):
     return neuron.Neuron(
-        location_x=x,
-        location_y=y,
-        location_z=z,
+        location=location.Location(
+            x,
+            y,
+            z,
+        ),
         set_up_function=base_neuron_set_up_function,
         inactivity_function=neuron_inactivity_function,
         apply_signal_function=neuron_apply_signal_function,

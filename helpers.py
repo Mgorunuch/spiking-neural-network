@@ -1,4 +1,5 @@
 import time
+import math
 
 
 def attach_to_dict_by_key(array, key, value, offset=0):
@@ -58,3 +59,19 @@ def dict_items_in_range(dictionary, from_key, to_key):
         )
 
     return values
+
+
+def distance(p1, p2):
+    return math.sqrt(
+        (p1[0] - p2[0])**2 +
+        (p1[1] - p2[1])**2 +
+        (p1[2] - p2[2])**2
+    )
+
+
+def multiplier_increment(p1, p2, nm):
+    return (
+        math.ceil((p2[0] - p1[0]) / nm),
+        math.ceil((p2[1] - p1[1]) / nm),
+        math.ceil((p2[2] - p1[2]) / nm),
+    )

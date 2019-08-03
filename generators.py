@@ -11,9 +11,9 @@ def generate_output_neurons_connections(
     # Прорабатываем соединения для исходящих нейронов
     for neuron in output_neurons:
         allowed_ranges = neurolocator.Neurolocator.get_allowed_connection_ranges(
-            c_x=int(neuron.location["x"]),
-            c_y=int(neuron.location["y"]),
-            c_z=int(neuron.location["z"]),
+            c_x=int(neuron.location.x),
+            c_y=int(neuron.location.y),
+            c_z=int(neuron.location.z),
             remoteness=connection_generation_remoteness,
         )
 

@@ -11,8 +11,8 @@ class NeuronConnection:
             current_milliseconds=0
     ):
         """
-        :param from_neuron: От какого нейрона идет сигнал v3.Neuron
-        :param to_neuron: До какого нейрона идет сигнал v3.Neuron
+        :param from_neuron: От какого нейрона идет сигнал Neuron
+        :param to_neuron: До какого нейрона идет сигнал Neuron
         :param proceed_function: REQUIRED! Основная функция обработки сигнала
         :param set_up: Функция которая создана для модификации класса соединения
         :param before_proceed_function: Функция запускающаяся после перез запуском основной функции

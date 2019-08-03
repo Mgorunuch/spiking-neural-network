@@ -1,9 +1,7 @@
 class Neuron:
     def __init__(
             self,
-            location_x,
-            location_y,
-            location_z,
+            location,
             set_up_function=None,
             inactivity_function=None,
             apply_signal_function=None,
@@ -15,11 +13,7 @@ class Neuron:
             is_input=False,
             current_milliseconds=0,
     ):
-        self.location = {
-            "x": str(location_x),
-            "y": str(location_y),
-            "z": str(location_z),
-        }
+        self.location = location
         self.inactivity_function = inactivity_function
         self.apply_signal_function = apply_signal_function
         self.check_spike_function = check_spike_function
@@ -53,7 +47,7 @@ class Neuron:
         :param delimiter: Разделитель координат
         :return: string
         """
-        loc = (self.location["x"], self.location["y"], self.location["z"])
+        loc = (str(self.location.x), str(self.location.y), str(self.location.z))
 
         return delimiter.join(loc)
 
