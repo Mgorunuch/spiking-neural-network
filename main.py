@@ -5,6 +5,7 @@ from receptors.encoders import text_message_encoder
 from receptors.decoders import text_message_decoder
 from receptors import decoder, encoder
 import threading
+import generators
 
 print_lock = threading.Lock()
 
@@ -267,52 +268,32 @@ for nr in range(len(base_neurons)):
 all_connections = []
 
 # Прорабатываем соединения для входных нейронов
-for neuron in input_neurons:
-    allowed_ranges = neurolocator.Neurolocator.get_allowed_connection_ranges(
-        c_x=int(neuron.location["x"]),
-        c_y=int(neuron.location["y"]),
-        c_z=int(neuron.location["z"]),
-        remoteness=INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
-    )
-    allowed_neurons = neurolocator.Neurolocator.get_allowed_neurons_in_ranges(allowed_ranges, br.neurons)
-
-    connections = neurolocator.Neurolocator.get_connections(
-        from_neuron=neuron,
-        to_neurons=allowed_neurons,
-        back_generation_percent=INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
-        create_connection_function=create_connection_function
-    )
-
-    all_connections = all_connections + connections
+all_connections += generators.generate_output_neurons_connections(
+    input_neurons,
+    INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+    INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+    create_connection_function,
+    br,
+)
 
 # Прорабатываем соединения для основных нейронов
-for neuron in base_neurons:
-    allowed_ranges = neurolocator.Neurolocator.get_allowed_connection_ranges(
-        c_x=int(neuron.location["x"]),
-        c_y=int(neuron.location["y"]),
-        c_z=int(neuron.location["z"]),
-        remoteness=BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS,
-    )
-    allowed_neurons = neurolocator.Neurolocator.get_allowed_neurons_in_ranges(allowed_ranges, br.neurons)
-
-    connections = neurolocator.Neurolocator.get_connections(
-        from_neuron=neuron,
-        to_neurons=allowed_neurons,
-        back_generation_percent=BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
-        create_connection_function=create_connection_function
-    )
-
-    all_connections = all_connections + connections
+all_connections += generators.generate_output_neurons_connections(
+    base_neurons,
+    BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+    BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+    create_connection_function,
+    br,
+)
 
 """
-    # Прорабатываем соединения для исходящих нейронов
-    all_connections += generators.generate_output_neurons_connections(
-        output_neurons=output_neurons,
-        output_neurons_connection_generation_remoteness=OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
-        utput_neurons_back_connection_generation_percent=OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
-        create_connection_function=create_connection_function,
-        brain=br,
-    )
+# Прорабатываем соединения для исходящих нейронов
+all_connections += generators.generate_output_neurons_connections(
+    output_neurons,
+    OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+    OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+    create_connection_function,
+    br,
+)
 """
 
 # Разбрасываем соединения по нейронам

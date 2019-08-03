@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="Todo remove" />
+    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generators.py" beforeDir="false" afterPath="$PROJECT_DIR$/generators.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,8 +35,8 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/v3/receptors" />
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/v3/receptors" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -217,7 +221,7 @@
       <workItem from="1564146782450" duration="172000" />
       <workItem from="1564344471635" duration="605000" />
       <workItem from="1564784917966" duration="7165000" />
-      <workItem from="1564803409117" duration="4165000" />
+      <workItem from="1564803409117" duration="4707000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1563469888983</created>
@@ -275,7 +279,14 @@
       <option name="project" value="LOCAL" />
       <updated>1564843341104</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="some refactoring">
+      <created>1564843675547</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1564843675547</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -346,7 +357,8 @@
     <MESSAGE value="Working V3 connections" />
     <MESSAGE value="Todo remove" />
     <MESSAGE value="axon-connection-points-generator" />
-    <option name="LAST_COMMIT_MESSAGE" value="axon-connection-points-generator" />
+    <MESSAGE value="some refactoring" />
+    <option name="LAST_COMMIT_MESSAGE" value="some refactoring" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
