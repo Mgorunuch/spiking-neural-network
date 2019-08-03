@@ -1,4 +1,4 @@
-from v3.receptors import encoder
+from receptors import encoder
 
 
 class TextMessageEncoder(encoder.Encoder):

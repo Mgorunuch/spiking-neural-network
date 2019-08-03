@@ -1,5 +1,5 @@
-from v3 import helpers
-from v3.classes import signal
+import helpers
+from classes import signal
 import threading
 
 print_lock = threading.Lock()

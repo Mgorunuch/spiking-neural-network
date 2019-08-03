@@ -1,4 +1,4 @@
-from v3.core import neurolocator
+from core import neurolocator
 
 
 def generate_output_neurons_connections(

@@ -1,346 +1,342 @@
-import matplotlib
-import matplotlib.pyplot as plt
-import random
-import numpy as np
+import queue
+from core import neurolocator
+from classes import neuron_connection, neuro_thread, signal, brain, neuron
+from receptors.encoders import text_message_encoder
+from receptors.decoders import text_message_decoder
+from receptors import decoder, encoder
+import threading
+
+print_lock = threading.Lock()
+
+MAIN_X_COORD = 0
+MAIN_Y_COORD = 0
+MAIN_Z_FROM = 0
+MAIN_Z_TO = 500
+
+# Настройка входных нейронов
+INPUT_NEURON_REMOTENESS = 5
+INPUT_NEURONS_COUNT_PER_ROW = 10
+INPUT_NEURONS_ROWS = 1
+INPUT_COORD_OFFSET = {
+    "x": MAIN_X_COORD,
+    "y": MAIN_Y_COORD,
+    "z": MAIN_Z_FROM,
+}
+INPUT_NEURON_SPIKE_ACTIVATION_POWER = 1000
+INPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
+INPUT_NEURON_BASE_POWER_LEVEL = 100
+# Настройка соединений входных нейронов
+INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 0
+INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+
+# Настройка исходящих нейронов
+OUTPUT_NEURON_REMOTENESS = 5
+OUTPUT_NEURONS_COUNT_PER_ROW = 10
+OUTPUT_NEURONS_ROWS = 1
+OUTPUT_COORD_OFFSET = {
+    "x": MAIN_X_COORD,
+    "y": MAIN_Y_COORD,
+    "z": MAIN_Z_TO,
+}
+OUTPUT_NEURON_SPIKE_ACTIVATION_POWER = 1000
+OUTPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
+OUTPUT_NEURON_BASE_POWER_LEVEL = 100
+# Настройка соединений исходящих нейронов
+OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 100
+OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+
+# Настройка обыкновенных нейронов
+BASE_NEURONS_X_COORD = MAIN_X_COORD
+BASE_NEURONS_Y_REMOTENESS = INPUT_NEURON_REMOTENESS
+BASE_NEURONS_Y_FROM = MAIN_Y_COORD + BASE_NEURONS_Y_REMOTENESS
+BASE_NEURONS_Y_TO = INPUT_NEURONS_COUNT_PER_ROW * INPUT_NEURON_REMOTENESS - BASE_NEURONS_Y_REMOTENESS
+BASE_NEURONS_Z_REMOTENESS = 5
+BASE_NEURONS_Z_FROM = MAIN_Z_FROM + BASE_NEURONS_Z_REMOTENESS
+BASE_NEURONS_Z_TO = MAIN_Z_TO - BASE_NEURONS_Z_REMOTENESS
+BASE_NEURON_SPIKE_ACTIVATION_POWER = 200
+BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 1000
+BASE_NEURON_BASE_POWER_LEVEL = 150
+# Настройка соединений базовых нейронов
+BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 20
+BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+
+
+ENCODER = text_message_encoder.TextMessageEncoder()
+DECODER = text_message_decoder.TextMessageDecoder()
+
+# Проверка валидности енкодера
+if isinstance(ENCODER, encoder.Encoder) is not True:
+    raise Exception("ENCODER не наследник класса Encoder")
+
+# Проверка валидности декодера
+if isinstance(DECODER, decoder.Decoder) is not True:
+    raise Exception("ENCODER не наследник класса Encoder")
+
+
+def input_neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = INPUT_NEURON_SPIKE_ACTIVATION_POWER
+    neuron_instance.power_damping_ms = INPUT_NEURON_POWER_DUMPING_PER_MS
+    neuron_instance.base_power_level = INPUT_NEURON_BASE_POWER_LEVEL
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = neuron_instance.last_activity
+
+
+def output_neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = OUTPUT_NEURON_SPIKE_ACTIVATION_POWER
+    neuron_instance.power_damping_ms = OUTPUT_NEURON_POWER_DUMPING_PER_MS
+    neuron_instance.base_power_level = OUTPUT_NEURON_BASE_POWER_LEVEL
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = neuron_instance.last_activity
+
+
+def base_neuron_set_up_function(neuron_instance):
+    neuron_instance.spike_activation_power = BASE_NEURON_SPIKE_ACTIVATION_POWER
+    neuron_instance.power_damping_ms = BASE_NEURON_POWER_DUMPING_PER_MS
+    neuron_instance.base_power_level = BASE_NEURON_BASE_POWER_LEVEL
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = neuron_instance.last_activity
+
+
+def neuron_apply_signal_function(neuron_instance, input_signal, current_ms):
+    if neuron_instance.inactive_to_ms > current_ms:
+        return
 
-# neuron [neuron_key, power, connections[neuron_location]connection_multiplier], last_power_up_step, power_history[tick_id]power]
-# neurons[row][neuron_id]neuron
-# spike_chain[tick][neuron_location][]power
-# power_ups[tick][]neuron_location
-# spike_resets[tick][]neuron_location
+    neuron_instance.power += input_signal.power
 
 
-class Neuron:
-    KEY_INDEX = 0
-    POWER_INDEX = 1
-    CONNECTIONS_INDEX = 2
-    LAST_ACTIVITY_TICK = 3
-    POWER_HISTORY_INDEX = 4
-    DELIMITER = "_"
-
-    @staticmethod
-    def get_neuron_power(neuron):
-        return neuron[Neuron.POWER_INDEX]
-
-    @staticmethod
-    def get_neuron_connections(neuron):
-        return neuron[Neuron.CONNECTIONS_INDEX]
-
-    @staticmethod
-    def get_neuron_key(neuron):
-        return neuron[Neuron.KEY_INDEX]
-
-    @staticmethod
-    def get_neuron_last_activity_tick(neuron):
-        return neuron[Neuron.LAST_ACTIVITY_TICK]
-
-    @staticmethod
-    def get_neuron_power_history(neuron):
-        return neuron[Neuron.POWER_HISTORY_INDEX]
-
-    @staticmethod
-    def parse_neuron_key(key):
-        return key.split(Neuron.DELIMITER)
-
-    @staticmethod
-    def generate_neuron_key(row, index):
-        return str(row) + Neuron.DELIMITER + str(index)
-
-    @staticmethod
-    def create_neuron(row, index, power):
-        return [
-            Neuron.generate_neuron_key(row, index),
-            power,
-            {},
-            0,
-            {'1': power}
-        ]
+def neuron_check_spike_function(neuron_instance, current_ms):
+    return neuron_instance.power >= neuron_instance.spike_activation_power
 
 
-class Main:
-    CURRENT_TICK = 1
-    SPIKE_GENERATION_POWER = 60
-    BASE_POWER_LEVEL = 30
-    DELIMITER = "_"
+def neuron_inactivity_function(neuron_instance, ms_passed):
+    if neuron_instance.power <= neuron_instance.base_power_level:
+        return
 
-    GENERATED_CONNECTION_FROM = -1
-    GENERATED_CONNECTION_TO = 1
+    potential_damp_power = ms_passed * neuron_instance.power_damping_ms
+    can_damp_power = neuron_instance.power - neuron_instance.base_power_level
+    if potential_damp_power >= can_damp_power:
+        neuron_instance.power = neuron_instance.base_power_level
+        return
 
-    NEURON_TICK_REGENERATION_POWER = 1
-    NEURON_TICK_ATTENUATION_POWER = 1
+    neuron_instance.power = neuron_instance.power - potential_damp_power
 
-    NEURON_AFTER_SPIKE_POWER = -5
 
-    NEURON_MIN_POWER = -5
-    NEURON_MAX_POWER = 65
+def get_spike_power_function(neuron_instance):
+    return neuron_instance.base_power_level
 
-    neurons = {}
-    spike_chain = {}
-    power_ups = {}
-    spike_resets = {}
 
-    ROWS = 0
-    COLS = 0
+def neuron_after_spike_function(neuron_instance, current_ms):
+    neuron_instance.power = neuron_instance.base_power_level
+    neuron_instance.inactive_to_ms = current_ms + 1000
 
-    spike_append_function = None
 
-    def __init__(self, rows, columns, spike_append_function):
-        self.generate_neurons(rows, columns)
-        self.generate_connections()
-        self.spike_append_function = spike_append_function
+def output_neuron_after_spike_function(neuron_instance, current_ms):
+    with print_lock:
+        print("Output spike!")
 
-        self.ROWS = rows
-        self.COLS = columns
 
-    def proceed_tick(self):
-        # print("Proceed tick started " + str(self.CURRENT_TICK))
-
-        self.proceed_spike_resets()
-
-        self.proceed_spikes()
-        self.proceed_power_ups()
-
-        self.store_power_to_history()
-
-        self.CURRENT_TICK += 1
-
-    def store_power_to_history(self):
-        for row in range(self.ROWS):
-            row = str(row)
-            for col in range(self.COLS):
-                col = str(col)
-                current_power = self.neurons[row][col][Neuron.POWER_INDEX]
-                self.neurons[row][col][Neuron.POWER_HISTORY_INDEX][self.CURRENT_TICK] = current_power
-
-    def recalculation(self):
-        for row in range(self.ROWS):
-            row = str(row)
-            for col in range(self.COLS):
-                col = str(col)
-                self.recalculate_neuron_power(row + "_" + col)
-
-    def generate_neurons(self, rows, columns):
-        for row in range(rows):
-            for column in range(columns):
-                self.register_neuron(str(row), str(column), Neuron.create_neuron(row, column, self.BASE_POWER_LEVEL))
-
-    def generate_connections(self):
-        for row_key, row in self.neurons.items():
-            connect_row_key = str(int(row_key) + 1)
-
-            if connect_row_key not in self.neurons:
-                return
-
-            for neuron_key, neuron in row.items():
-                for connect_neuron_key, connect_neuron in self.neurons[connect_row_key].items():
-                    connection_power = random.randint(self.GENERATED_CONNECTION_FROM, self.GENERATED_CONNECTION_TO)
-                    connect_key = Neuron.get_neuron_key(connect_neuron)
-                    self.neurons[row_key][neuron_key][Neuron.CONNECTIONS_INDEX][connect_key] = connection_power
-
-    def register_neuron(self, row, neuron_id, neuron):
-        if row not in self.neurons:
-            self.neurons[row] = {}
-
-        self.neurons[row][neuron_id] = neuron
-
-    def attach_neuron_power(self, neuron_key, power):
-        row, col = Neuron.parse_neuron_key(neuron_key)
-
-        current_power = self.neurons[row][col][Neuron.POWER_INDEX]
-
-        self.set_neuron_power(neuron_key, power + current_power)
-
-    def set_neuron_power(self, neuron_key, power, force=False):
-        row, col = Neuron.parse_neuron_key(neuron_key)
-
-        if force:
-            self.neurons[row][col][Neuron.POWER_INDEX] = power
-            return
-
-        if neuron_key == "1_1":
-            print("Set power [" + str(self.CURRENT_TICK) + "] " + str(power))
-
-        if self.neurons[row][col][Neuron.POWER_INDEX] < self.BASE_POWER_LEVEL:
-            return
-
-        new_power = self.neurons[row][col][Neuron.POWER_INDEX] + power
-        if new_power < self.NEURON_MIN_POWER:
-            self.neurons[row][col][Neuron.POWER_INDEX] = self.NEURON_MIN_POWER
-            return
-
-        if new_power > self.NEURON_MAX_POWER:
-            self.neurons[row][col][Neuron.POWER_INDEX] = self.NEURON_MAX_POWER
-            return
-
-        self.neurons[row][col][Neuron.POWER_INDEX] = power
-
-    def append_power_to_neuron(self, neuron_key, power):
-        self.attach_neuron_power(neuron_key, power)
-
-        if self.CURRENT_TICK not in self.power_ups:
-            self.power_ups[self.CURRENT_TICK] = []
-
-        self.power_ups[self.CURRENT_TICK].append(neuron_key)
-
-    def check_neuron_spike(self, power):
-        return power > self.SPIKE_GENERATION_POWER
-
-    def register_spike(self, spike_tick, row, neuron_id, power):
-        # print("--- Register spike -> " + row + "_" + neuron_id)
-
-        if spike_tick not in self.spike_chain:
-            self.spike_chain[spike_tick] = {}
-
-        neuron_key = Neuron.generate_neuron_key(row, neuron_id)
-        if neuron_key not in self.spike_chain[spike_tick]:
-            self.spike_chain[spike_tick][neuron_key] = []
-
-        self.spike_chain[spike_tick][neuron_key].append(power)
-
-    def proceed_spikes(self):
-        if self.CURRENT_TICK not in self.spike_chain:
-            return
-
-        for location, powers in self.spike_chain[self.CURRENT_TICK].items():
-            self.recalculate_neuron_power(location)
-
-            result_power = self.spike_append_function(powers)
-            self.append_power_to_neuron(location, result_power)
-
-    def proceed_spike_resets(self):
-        if self.CURRENT_TICK not in self.spike_resets:
-            return
-
-        for location in self.spike_resets[self.CURRENT_TICK]:
-            new_location = Neuron.parse_neuron_key(location)
-            row = new_location[0]
-            col = new_location[1]
-
-            neuron = self.neurons[row][col]
-            neuron_power = neuron[Neuron.POWER_INDEX]
-
-            self.attach_neuron_power(location, (neuron_power * -1))
-
-    def proceed_power_ups(self):
-        if self.CURRENT_TICK not in self.power_ups:
-            return
-
-        for location in self.power_ups[self.CURRENT_TICK]:
-            location = Neuron.parse_neuron_key(location)
-            row = location[0]
-            col = location[1]
-
-            neuron = self.neurons[row][col]
-            neuron_power = neuron[Neuron.POWER_INDEX]
-
-            has_spike = self.check_neuron_spike(neuron_power)
-            if not has_spike:
-                continue
-
-            # print("-- Spike -> " + row + "_" + col)
-
-            neuron_connections = Neuron.get_neuron_connections(neuron)
-            for connection, multiplier in neuron_connections.items():
-                output_power = neuron[Neuron.POWER_INDEX] * multiplier
-                output_location = Neuron.parse_neuron_key(connection)
-
-                self.register_spike(self.CURRENT_TICK + 1, output_location[0], output_location[1], output_power)
-
-            if self.CURRENT_TICK + 1 not in self.spike_resets:
-                self.spike_resets[self.CURRENT_TICK + 1] = []
-
-            self.spike_resets[self.CURRENT_TICK + 1].append(Neuron.generate_neuron_key(row, col))
-
-    def recalculate_neuron_power(self, neuron_key):
-        row, col = Neuron.parse_neuron_key(neuron_key)
-        neuron = self.neurons[row][col]
-
-        steps_difference = self.CURRENT_TICK - neuron[Neuron.LAST_ACTIVITY_TICK]
-        if steps_difference == 0:
-            return
-
-        current_neuron_power = Neuron.get_neuron_power(neuron)
-        if current_neuron_power == self.BASE_POWER_LEVEL:
-            return
-
-        power_difference = self.BASE_POWER_LEVEL - current_neuron_power
-
-        if power_difference < 0:
-            potential_power_attenuate = self.NEURON_TICK_ATTENUATION_POWER * steps_difference
-            if abs(power_difference) < potential_power_attenuate:
-                self.set_neuron_power(Neuron.generate_neuron_key(row, col), self.BASE_POWER_LEVEL, True)
-                self.neurons[row][col][Neuron.LAST_ACTIVITY_TICK] = self.CURRENT_TICK
-                return
-
-            new_power = current_neuron_power - potential_power_attenuate
-            self.set_neuron_power(Neuron.generate_neuron_key(row, col), new_power, True)
-            self.neurons[row][col][Neuron.LAST_ACTIVITY_TICK] = self.CURRENT_TICK
-            return
-
-        if power_difference > 0:
-            potential_power_regenerate = self.NEURON_TICK_REGENERATION_POWER * steps_difference
-            if abs(power_difference) > potential_power_regenerate:
-                self.set_neuron_power(Neuron.generate_neuron_key(row, col), self.BASE_POWER_LEVEL, True)
-                self.neurons[row][col][Neuron.LAST_ACTIVITY_TICK] = self.CURRENT_TICK
-                return
-
-            new_power = current_neuron_power - potential_power_regenerate
-            self.set_neuron_power(Neuron.generate_neuron_key(row, col), new_power, True)
-            self.neurons[row][col][Neuron.LAST_ACTIVITY_TICK] = self.CURRENT_TICK
-            return
-
-
-def spike_append_function(powers):
-    res = 0
-    for power in powers:
-        res = res + power
-    return res
-
-
-def create_neuron_graph(pw, row, col):
-    history = Neuron.get_neuron_power_history(pw.neurons[row][col])
-    t = np.array([*history.keys()])
-    t = t.astype(np.int)
-    v = np.array([*history.values()])
-
-    fig, ax = plt.subplots()
-    ax.plot(
-        t,
-        v,
+def create_input_neuron_function(x, y, z):
+    # Входные нейроны не будут просчитываться через функцию неактивности
+    return neuron.Neuron(
+        location_x=x,
+        location_y=y,
+        location_z=z,
+        set_up_function=input_neuron_set_up_function,
+        inactivity_function=neuron_inactivity_function,
+        apply_signal_function=neuron_apply_signal_function,
+        check_spike_function=neuron_check_spike_function,
+        current_milliseconds=0,
+        before_spike_function=None,
+        after_spike_function=neuron_after_spike_function,
+        get_spike_power_function=get_spike_power_function,
+        is_output=False,
+        is_input=True,
     )
 
-    ax.grid()
 
-    fig.savefig("test.png")
-    plt.show()
+def create_output_neuron_function(x, y, z):
+    # Выходные нейроны не будут просчитываться через функцию неактивности
+    return neuron.Neuron(
+        location_x=x,
+        location_y=y,
+        location_z=z,
+        set_up_function=output_neuron_set_up_function,
+        inactivity_function=neuron_inactivity_function,
+        apply_signal_function=neuron_apply_signal_function,
+        check_spike_function=neuron_check_spike_function,
+        current_milliseconds=0,
+        before_spike_function=None,
+        after_spike_function=output_neuron_after_spike_function,
+        get_spike_power_function=get_spike_power_function,
+        is_output=True,
+        is_input=False,
+    )
 
 
-pw = Main(10, 8, spike_append_function)
+def create_base_neurons_function(x, y, z):
+    return neuron.Neuron(
+        location_x=x,
+        location_y=y,
+        location_z=z,
+        set_up_function=base_neuron_set_up_function,
+        inactivity_function=neuron_inactivity_function,
+        apply_signal_function=neuron_apply_signal_function,
+        check_spike_function=neuron_check_spike_function,
+        current_milliseconds=0,
+        before_spike_function=None,
+        after_spike_function=neuron_after_spike_function,
+        get_spike_power_function=get_spike_power_function,
+        is_output=False,
+        is_input=False,
+    )
 
-pw.register_spike(1, '1', '1', 41)
-pw.register_spike(1, '1', '2', 41)
-pw.register_spike(1, '1', '3', 41)
 
-#pw.register_spike(7, '1', '1', 41)
-#pw.register_spike(7, '1', '2', 41)
-#pw.register_spike(7, '1', '3', 41)
+# Временная переменная для хранения данных
+TMP_created_connections = {}
 
-i = 0
-while i < 14:
-    pw.proceed_tick()
-    pw.recalculation()
-    i += 1
 
-create_neuron_graph(pw, '2', '1')
-create_neuron_graph(pw, '2', '2')
-create_neuron_graph(pw, '2', '3')
-create_neuron_graph(pw, '2', '4')
-#create_neuron_graph(pw, '4', '5')
-#create_neuron_graph(pw, '2', '5')
-#create_neuron_graph(pw, '6', '1')
+# Функция проработки сигнала в соединении
+def connection_proceed_function(connection_instance, output_signal):
+    connection_instance.to_neuron.get_thread().get_queue().put(output_signal)
 
-# matplotlib.use('Agg')
-# fig = plt.figure()
-# ax = fig.add_subplot(111)
-# ax.plot([1,2,3])
-# fig.savefig('test.png')
+
+# Фунция для создания соединения
+def create_connection_function(from_neuron, to_neuron):
+    from_key = from_neuron.get_raw_string_location()
+    to_key = to_neuron.get_raw_string_location()
+
+    # Проверяем создавали ли мы такое же соединеник
+    if from_key + "-" + to_key in TMP_created_connections:
+        return None
+
+    # Проверяем создавали ли мы обратное соединеник
+    if to_key + "-" + from_key in TMP_created_connections:
+        return None
+
+    # Если соединений не создавали. Создаем соединение и записываем во временную переменную
+    TMP_created_connections[from_key + "-" + to_key] = True
+    return neuron_connection.NeuronConnection(
+        from_neuron=from_neuron,
+        to_neuron=to_neuron,
+        proceed_function=connection_proceed_function,
+    )
+
+
+input_neurons = neurolocator.Neurolocator.create_input_neurons(
+    create_neuron_function=create_input_neuron_function,
+    count_per_row=INPUT_NEURONS_COUNT_PER_ROW,
+    rows=INPUT_NEURONS_ROWS,
+    remoteness=INPUT_NEURON_REMOTENESS,
+    x_offset=INPUT_COORD_OFFSET["x"],
+    y_offset=INPUT_COORD_OFFSET["y"],
+    z_offset=INPUT_COORD_OFFSET["z"],
+)
+
+output_neurons = neurolocator.Neurolocator.create_output_neurons(
+    create_neuron_function=create_output_neuron_function,
+    count_per_row=OUTPUT_NEURONS_COUNT_PER_ROW,
+    rows=OUTPUT_NEURONS_ROWS,
+    remoteness=OUTPUT_NEURON_REMOTENESS,
+    x_offset=OUTPUT_COORD_OFFSET["x"],
+    y_offset=OUTPUT_COORD_OFFSET["y"],
+    z_offset=OUTPUT_COORD_OFFSET["z"],
+)
+
+base_neurons = neurolocator.Neurolocator.create_base_neurons(
+    create_neuron_function=create_base_neurons_function,
+    x_coord=BASE_NEURONS_X_COORD,
+    y_from=BASE_NEURONS_Y_FROM,
+    y_to=BASE_NEURONS_Y_TO,
+    y_remoteness=BASE_NEURONS_Y_REMOTENESS,
+    z_from=BASE_NEURONS_Z_FROM,
+    z_to=BASE_NEURONS_Z_TO,
+    z_remoteness=BASE_NEURONS_Z_REMOTENESS,
+)
+
+br = brain.Brain()
+for nr in range(len(input_neurons)):
+    br.attach_neuron(input_neurons[nr])
+
+for nr in range(len(output_neurons)):
+    br.attach_neuron(output_neurons[nr])
+
+for nr in range(len(base_neurons)):
+    br.attach_neuron(base_neurons[nr])
+
+
+all_connections = []
+
+# Прорабатываем соединения для входных нейронов
+for neuron in input_neurons:
+    allowed_ranges = neurolocator.Neurolocator.get_allowed_connection_ranges(
+        c_x=int(neuron.location["x"]),
+        c_y=int(neuron.location["y"]),
+        c_z=int(neuron.location["z"]),
+        remoteness=INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+    )
+    allowed_neurons = neurolocator.Neurolocator.get_allowed_neurons_in_ranges(allowed_ranges, br.neurons)
+
+    connections = neurolocator.Neurolocator.get_connections(
+        from_neuron=neuron,
+        to_neurons=allowed_neurons,
+        back_generation_percent=INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+        create_connection_function=create_connection_function
+    )
+
+    all_connections = all_connections + connections
+
+# Прорабатываем соединения для основных нейронов
+for neuron in base_neurons:
+    allowed_ranges = neurolocator.Neurolocator.get_allowed_connection_ranges(
+        c_x=int(neuron.location["x"]),
+        c_y=int(neuron.location["y"]),
+        c_z=int(neuron.location["z"]),
+        remoteness=BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+    )
+    allowed_neurons = neurolocator.Neurolocator.get_allowed_neurons_in_ranges(allowed_ranges, br.neurons)
+
+    connections = neurolocator.Neurolocator.get_connections(
+        from_neuron=neuron,
+        to_neurons=allowed_neurons,
+        back_generation_percent=BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+        create_connection_function=create_connection_function
+    )
+
+    all_connections = all_connections + connections
+
+"""
+    # Прорабатываем соединения для исходящих нейронов
+    all_connections += generators.generate_output_neurons_connections(
+        output_neurons=output_neurons,
+        output_neurons_connection_generation_remoteness=OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
+        utput_neurons_back_connection_generation_percent=OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
+        create_connection_function=create_connection_function,
+        brain=br,
+    )
+"""
+
+# Разбрасываем соединения по нейронам
+for connection in all_connections:
+    connection.from_neuron.attach_connection(connection)
+
+# Создаем потоки для запуска мозга
+for neuron in input_neurons + base_neurons + output_neurons:
+    q = queue.Queue()
+    thread = neuro_thread.NeuroThread(q, neuron, br)
+    neuron.set_thread(thread)
+
+# Запускаем мозг
+for neuron in input_neurons + base_neurons + output_neurons:
+    neuron.register_activity(br.get_current_ms())
+    neuron.get_thread().start()
+
+# Удаляем слежебные переменные
+del all_connections
+del base_neurons
+del TMP_created_connections
+
+
+for neuron in input_neurons:
+    neuron.get_thread().get_queue().put(signal.Signal(10000))
+
+# TODO: Продумать обработки нейрогенеза и нейропластичности

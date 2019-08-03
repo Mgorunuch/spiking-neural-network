@@ -1,9 +1,9 @@
 import unittest
-from v3 import helpers
-from v3.classes.brain import Brain
-from v3.classes.neuron import Neuron
-from v3.classes.neuron_connection import NeuronConnection
-from v3.classes.signal import Signal
+import helpers
+from classes.brain import Brain
+from classes.neuron import Neuron
+from classes.neuron_connection import NeuronConnection
+from classes.signal import Signal
 
 
 class TestHelperMethods(unittest.TestCase):
