@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            position: relative;
+            padding: 0;
+            margin: 0;
+        }
+        .container {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .current-time {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <textarea name="neurons" id="neurons" cols="30" rows="10"></textarea>
+        <textarea name="spikes" id="spikes" cols="30" rows="10"></textarea>
+
+        <button onclick="parseData()">DO it</button>
+        <button onclick="renderScene()">Render me</button>
+    </div>
+
+    <div class="current-time">
+        <button onclick="getNextTime()">get Next Time</button>
+        <div id="current-time"></div>
+        <button onclick="getPrevTime()">get Prev Time</button>
+    </div>
+
+    <script src="./three.js"></script>
+    <script src="./track.js"></script>
+    <script type="text/javascript">
+        let spikes = {};
+        let neurons = [];
+        let currentTime = '';
+
+        const parseData = () => {
+            const rawNeurons = document.getElementById('neurons').value;
+            neurons = rawNeurons.split("\n");
+
+            const rawSpikes = document.getElementById('spikes').value;
+            const spikeRows = rawSpikes.split("\n");
+            spikeRows.forEach(row => {
+                if (row === "") {
+                    return;
+                }
+
+                const rowItems = row.split('|');
+                const time = rowItems[0];
+                const neuron = rowItems[1];
+
+                if (!spikes[time]) {
+                    spikes[time] = [];
+                }
+
+                if (!spikes[time].includes(neuron)) {
+                    spikes[time].push(neuron);
+                }
+            });
+
+            console.log({
+                spikes, neurons
+            });
+        };
+
+        let controls, renderer, scene, camera, neuron_meshes = {};
+
+        const updateCurrentTime = (newTimeKey) => {
+            currentTime = newTimeKey;
+            document.getElementById('current-time').innerHTML = newTimeKey;
+        };
+
+        const getNextTime = () => {
+            const index = Object.keys(spikes).indexOf(currentTime);
+            let newIndex;
+
+            if (index >= Object.keys(spikes).length) {
+                newIndex = 0;
+            } else {
+                newIndex = index + 1;
+            }
+
+            updateCurrentTime(Object.keys(spikes)[newIndex]);
+            animate();
+        };
+
+        const getPrevTime = () => {
+            const index = Object.keys(spikes).indexOf(currentTime);
+            let newIndex;
+
+            if (index === 0) {
+                newIndex = Object.keys(spikes).length - 1;
+            } else {
+                newIndex = index - 1;
+            }
+
+            updateCurrentTime(Object.keys(spikes)[newIndex]);
+            animate();
+        };
+
+        const animate = () => {
+            const baseMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
+            const activeMaterial = new THREE.MeshPhongMaterial( { color: 0x000000, flatShading: true } );
+
+            Object.keys(neuron_meshes).forEach(neuron => {
+                const mesh = neuron_meshes[neuron];
+
+                if (spikes[currentTime].includes(neuron)) {
+                    mesh.material = activeMaterial;
+                } else {
+                    mesh.material = baseMaterial;
+                }
+            });
+
+            requestAnimationFrame( animate );
+            controls.update();
+        };
+
+        const render = () => {
+            renderer.render( scene, camera );
+        };
+
+        const onWindowResize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize( window.innerWidth, window.innerHeight );
+
+            controls.handleResize();
+
+            render();
+        };
+
+        const init = () => {
+            updateCurrentTime(Object.keys(spikes)[0]);
+
+            camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+            camera.position.z = 500;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0xcccccc );
+            scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+
+            const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+            const material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
+
+            neurons.forEach(neuron => {
+                const cube = new THREE.Mesh( geometry, material );
+
+                const [x, y, z] = neuron.split('.');
+
+                cube.position.x = x;
+                cube.position.y = y;
+                cube.position.z = z;
+
+                cube.updateMatrix();
+                cube.matrixAutoUpdate = false;
+
+                neuron_meshes[neuron] = cube;
+
+                scene.add( cube );
+            });
+
+            let light = new THREE.DirectionalLight( 0xffffff );
+            light.position.set( 1, 1, 1 );
+            scene.add( light );
+
+            light = new THREE.DirectionalLight( 0x002288 );
+            light.position.set( - 1, - 1, - 1 );
+            scene.add( light );
+
+            light = new THREE.AmbientLight( 0x222222 );
+            scene.add( light );
+
+            renderer = new THREE.WebGLRenderer( { antialias: true } );
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            controls = new THREE.TrackballControls( camera, renderer.domElement );
+
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+
+            controls.noZoom = false;
+            controls.noPan = false;
+
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
+
+            controls.keys = [ 65, 83, 68 ];
+
+            controls.addEventListener( 'change', render );
+
+            controls.update();
+
+            window.addEventListener( 'resize', onWindowResize, false );
+            render();
+        };
+
+        const renderScene = () => {
+			init();
+			animate();
+        }
+    </script>
+</body>
+</html>

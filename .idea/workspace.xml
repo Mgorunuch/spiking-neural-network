@@ -2,6 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/drawer/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/drawer/three.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/drawer/track.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/spiking-test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/spiking-test.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -28,6 +34,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -41,6 +48,7 @@
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -67,6 +75,9 @@
     </option>
   </component>
   <component name="RunManager" selected="Python.main">
+    <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/spiking-test/drawer/index.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="spiking-test" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -126,10 +137,12 @@
     <list>
       <item itemvalue="Python.main" />
       <item itemvalue="Python tests.Unittests in unittests.py" />
+      <item itemvalue="JavaScript Debug.index.html" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.main" />
+        <item itemvalue="JavaScript Debug.index.html" />
         <item itemvalue="Python tests.Unittests in unittests.py" />
       </list>
     </recent_temporary>
@@ -172,7 +185,7 @@
       <workItem from="1564344471635" duration="605000" />
       <workItem from="1564784917966" duration="7165000" />
       <workItem from="1564803409117" duration="20632000" />
-      <workItem from="1564883442799" duration="3440000" />
+      <workItem from="1564883442799" duration="10408000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1563469888983</created>
@@ -258,7 +271,14 @@
       <option name="project" value="LOCAL" />
       <updated>1564886761776</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Readme update">
+      <created>1564886888653</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1564886888653</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -334,17 +354,11 @@
     <MESSAGE value="refactored generation function" />
     <MESSAGE value="new location class" />
     <MESSAGE value="Working version" />
-    <option name="LAST_COMMIT_MESSAGE" value="Working version" />
+    <MESSAGE value="Readme update" />
+    <option name="LAST_COMMIT_MESSAGE" value="Readme update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main.py</url>
-          <line>316</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
