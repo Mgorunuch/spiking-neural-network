@@ -11,6 +11,9 @@ class Brain:
     Является основной единицой для хранения данных.
     """
 
+    def __init__(self, spike_logger=None):
+        self.spike_logger = spike_logger
+
     neurons = {}
 
     def get_current_ms(self):
@@ -76,8 +79,9 @@ class Brain:
                 # Регистрируем активность в соединении
                 connection.register_activity(current_ms)
 
-            with print_lock:
-                print("SPIKE! at " + neuron.get_raw_string_location())
+            if self.spike_logger is not None:
+                with print_lock:
+                    self.spike_logger.add_spike(neuron)
 
             # Заканчиваем работу со спайком
             neuron.after_spike(current_ms)

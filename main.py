@@ -1,11 +1,13 @@
 import queue
+import json
 from core import neurolocator
-from classes import neuron_connection, neuro_thread, signal, brain, neuron, location
+from classes import neuron_connection, neuro_thread, signal, brain, neuron, location, spike_logger
 from receptors.encoders import text_message_encoder
 from receptors.decoders import text_message_decoder
 from receptors import decoder, encoder
 import threading
 import generators
+import time
 
 print_lock = threading.Lock()
 
@@ -23,12 +25,12 @@ INPUT_COORD_OFFSET = {
     "y": MAIN_Y_COORD,
     "z": MAIN_Z_FROM,
 }
-INPUT_NEURON_SPIKE_ACTIVATION_POWER = 1000
+INPUT_NEURON_SPIKE_ACTIVATION_POWER = 600
 INPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
 INPUT_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений входных нейронов
 INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 0
-INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 60
 
 # Настройка исходящих нейронов
 OUTPUT_NEURON_REMOTENESS = 5
@@ -44,7 +46,7 @@ OUTPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
 OUTPUT_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений исходящих нейронов
 OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 100
-OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 70
 
 # Настройка обыкновенных нейронов
 BASE_NEURONS_X_COORD = MAIN_X_COORD
@@ -59,7 +61,7 @@ BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 1000
 BASE_NEURON_BASE_POWER_LEVEL = 150
 # Настройка соединений базовых нейронов
 BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 20
-BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 15
+BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 60
 
 
 ENCODER = text_message_encoder.TextMessageEncoder()
@@ -209,8 +211,12 @@ def connection_proceed_function(connection_instance, output_signal):
 
 # Фунция для создания соединения
 def create_connection_function(from_neuron, to_neuron):
-    from_key = from_neuron.get_raw_string_location()
-    to_key = to_neuron.get_raw_string_location()
+    from_key = from_neuron.get_raw_string_location('.')
+    to_key = to_neuron.get_raw_string_location('.')
+
+    # Проверяем тыкает ли нейрон сам на себя
+    if from_key == to_key:
+        return None
 
     # Проверяем создавали ли мы такое же соединеник
     if from_key + "-" + to_key in TMP_created_connections:
@@ -260,7 +266,8 @@ base_neurons = neurolocator.Neurolocator.create_base_neurons(
     z_remoteness=BASE_NEURONS_Z_REMOTENESS,
 )
 
-br = brain.Brain()
+sl = spike_logger.SpikeLogger()
+br = brain.Brain(sl)
 for nr in range(len(input_neurons)):
     br.attach_neuron(input_neurons[nr])
 
@@ -270,11 +277,14 @@ for nr in range(len(output_neurons)):
 for nr in range(len(base_neurons)):
     br.attach_neuron(base_neurons[nr])
 
+with open("neurons.txt", "a") as myfile:
+    for neuron in input_neurons + base_neurons + output_neurons:
+        myfile.write(neuron.get_raw_string_location('.') + "\n")
 
 all_connections = []
 
 # Прорабатываем соединения для входных нейронов
-all_connections += generators.generate_output_neurons_connections(
+all_connections += generators.generate_neurons_connections(
     input_neurons,
     INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
     INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
@@ -283,7 +293,7 @@ all_connections += generators.generate_output_neurons_connections(
 )
 
 # Прорабатываем соединения для основных нейронов
-all_connections += generators.generate_output_neurons_connections(
+all_connections += generators.generate_neurons_connections(
     base_neurons,
     BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS,
     BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
@@ -293,7 +303,7 @@ all_connections += generators.generate_output_neurons_connections(
 
 """
 # Прорабатываем соединения для исходящих нейронов
-all_connections += generators.generate_output_neurons_connections(
+all_connections += generators.generate_neurons_connections(
     output_neurons,
     OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS,
     OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT,
@@ -318,9 +328,9 @@ for neuron in input_neurons + base_neurons + output_neurons:
     neuron.get_thread().start()
 
 # Удаляем слежебные переменные
-del all_connections
-del base_neurons
-del TMP_created_connections
+# del all_connections
+# del base_neurons
+# del TMP_created_connections
 
 
 for neuron in input_neurons:

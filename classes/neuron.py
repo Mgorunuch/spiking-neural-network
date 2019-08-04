@@ -86,11 +86,12 @@ class Neuron:
         :return: None
         """
         loc = self.get_raw_string_location(".")
+        to_loc = connection.to_neuron.get_raw_string_location(".")
 
-        if loc != connection.from_neuron.get_raw_string_location("."):
-            raise Exception("Попытка сделать соединение к неравильному нейрону")
+        if loc == to_loc:
+            raise Exception("Попытка сделать соединение нейрона самому к себе " + loc + " - " + to_loc)
 
-        self.connections[loc] = connection
+        self.connections[to_loc] = connection
 
     def remove_connection(self, neuron):
         """

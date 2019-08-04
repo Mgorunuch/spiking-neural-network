@@ -62,6 +62,9 @@ def dict_items_in_range(dictionary, from_key, to_key):
 
 
 def distance(p1, p2):
+    """
+    Дистанция между двумя точками в пространстве
+    """
     return math.sqrt(
         (p1[0] - p2[0])**2 +
         (p1[1] - p2[1])**2 +

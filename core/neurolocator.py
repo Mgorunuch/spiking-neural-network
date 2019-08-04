@@ -175,9 +175,6 @@ class Neurolocator:
         connections = []
 
         for to_neuron in to_neurons:
-            if from_neuron.get_raw_string_location(".") == to_neuron.get_raw_string_location("."):
-                continue
-
             is_back = random.randint(0, 100) < back_generation_percent
 
             if is_back:
