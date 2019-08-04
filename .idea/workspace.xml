@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="new location class">
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/classes/micro_column_config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/classes/neocortex_micro_column.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/classes/spike_logger.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/neurons.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/spikes.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/mgorunuch.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/mgorunuch.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/brain.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/brain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/neuron.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/neuron.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/neurolocator.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/neurolocator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generators.py" beforeDir="false" afterPath="$PROJECT_DIR$/generators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/helpers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -185,7 +172,7 @@
       <workItem from="1564344471635" duration="605000" />
       <workItem from="1564784917966" duration="7165000" />
       <workItem from="1564803409117" duration="20632000" />
-      <workItem from="1564883442799" duration="3220000" />
+      <workItem from="1564883442799" duration="3440000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1563469888983</created>
@@ -264,7 +251,14 @@
       <option name="project" value="LOCAL" />
       <updated>1564846215519</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Working version">
+      <created>1564886761776</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1564886761776</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -339,7 +333,8 @@
     <MESSAGE value="some refactoring" />
     <MESSAGE value="refactored generation function" />
     <MESSAGE value="new location class" />
-    <option name="LAST_COMMIT_MESSAGE" value="new location class" />
+    <MESSAGE value="Working version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Working version" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
