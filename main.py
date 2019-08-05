@@ -1,25 +1,23 @@
 import queue
-import json
 from core import neurolocator
-from classes import neuron_connection, neuro_thread, signal, brain, neuron, location, spike_logger
+from classes import neuron_connection, neuro_thread, signal, brain, neuron, location, spike_logger, connection_activity_logger
 from receptors.encoders import text_message_encoder
 from receptors.decoders import text_message_decoder
 from receptors import decoder, encoder
 import threading
 import generators
-import time
 
 print_lock = threading.Lock()
 
-MAIN_X_COORD = 0
-MAIN_Y_COORD = 0
-MAIN_Z_FROM = 0
-MAIN_Z_TO = 500
+MAIN_X_COORD = 1
+MAIN_Y_COORD = 1
+MAIN_Z_FROM = 1
+MAIN_Z_TO = 100
 
 # Настройка входных нейронов
-INPUT_NEURON_REMOTENESS = 5
-INPUT_NEURONS_COUNT_PER_ROW = 10
-INPUT_NEURONS_ROWS = 1
+INPUT_NEURON_REMOTENESS = 10
+INPUT_NEURONS_COUNT_PER_ROW = 3
+INPUT_NEURONS_ROWS = 3
 INPUT_COORD_OFFSET = {
     "x": MAIN_X_COORD,
     "y": MAIN_Y_COORD,
@@ -30,38 +28,43 @@ INPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
 INPUT_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений входных нейронов
 INPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 0
-INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 60
+INPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 12
 
 # Настройка исходящих нейронов
-OUTPUT_NEURON_REMOTENESS = 5
-OUTPUT_NEURONS_COUNT_PER_ROW = 10
-OUTPUT_NEURONS_ROWS = 1
+OUTPUT_NEURON_REMOTENESS = 10
+OUTPUT_NEURONS_COUNT_PER_ROW = 3
+OUTPUT_NEURONS_ROWS = 3
 OUTPUT_COORD_OFFSET = {
     "x": MAIN_X_COORD,
     "y": MAIN_Y_COORD,
     "z": MAIN_Z_TO,
 }
-OUTPUT_NEURON_SPIKE_ACTIVATION_POWER = 1000
+OUTPUT_NEURON_SPIKE_ACTIVATION_POWER = 500
 OUTPUT_NEURON_POWER_DUMPING_PER_MS = 1 / 100
 OUTPUT_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений исходящих нейронов
 OUTPUT_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 100
-OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 70
+OUTPUT_NEURONS_CONNECTION_GENERATION_REMOTENESS = 2
 
 # Настройка обыкновенных нейронов
-BASE_NEURONS_X_COORD = MAIN_X_COORD
-BASE_NEURONS_Y_REMOTENESS = INPUT_NEURON_REMOTENESS
-BASE_NEURONS_Y_FROM = MAIN_Y_COORD + BASE_NEURONS_Y_REMOTENESS
-BASE_NEURONS_Y_TO = INPUT_NEURONS_COUNT_PER_ROW * INPUT_NEURON_REMOTENESS - BASE_NEURONS_Y_REMOTENESS
-BASE_NEURONS_Z_REMOTENESS = 5
+BASE_NEURONS_X_REMOTENESS = 8
+BASE_NEURONS_Y_REMOTENESS = 8
+BASE_NEURONS_Z_REMOTENESS = 8
+
+BASE_NEURONS_X_FROM = MAIN_X_COORD
+BASE_NEURONS_Y_FROM = MAIN_Y_COORD
 BASE_NEURONS_Z_FROM = MAIN_Z_FROM + BASE_NEURONS_Z_REMOTENESS
+
+BASE_NEURONS_X_TO = BASE_NEURONS_X_FROM + BASE_NEURONS_X_REMOTENESS * 5
+BASE_NEURONS_Y_TO = BASE_NEURONS_Y_REMOTENESS * 5
 BASE_NEURONS_Z_TO = MAIN_Z_TO - BASE_NEURONS_Z_REMOTENESS
-BASE_NEURON_SPIKE_ACTIVATION_POWER = 200
-BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 1000
-BASE_NEURON_BASE_POWER_LEVEL = 150
+
+BASE_NEURON_SPIKE_ACTIVATION_POWER = 400
+BASE_NEURON_POWER_DUMPING_PER_MS = 1 / 200
+BASE_NEURON_BASE_POWER_LEVEL = 100
 # Настройка соединений базовых нейронов
 BASE_NEURONS_BACK_CONNECTION_GENERATION_PERCENT = 20
-BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 60
+BASE_NEURONS_CONNECTION_GENERATION_REMOTENESS = 12
 
 
 ENCODER = text_message_encoder.TextMessageEncoder()
@@ -257,7 +260,9 @@ output_neurons = neurolocator.Neurolocator.create_output_neurons(
 
 base_neurons = neurolocator.Neurolocator.create_base_neurons(
     create_neuron_function=create_base_neurons_function,
-    x_coord=BASE_NEURONS_X_COORD,
+    x_from=BASE_NEURONS_X_FROM,
+    x_to=BASE_NEURONS_X_TO,
+    x_remoteness=BASE_NEURONS_X_REMOTENESS,
     y_from=BASE_NEURONS_Y_FROM,
     y_to=BASE_NEURONS_Y_TO,
     y_remoteness=BASE_NEURONS_Y_REMOTENESS,
@@ -266,8 +271,12 @@ base_neurons = neurolocator.Neurolocator.create_base_neurons(
     z_remoteness=BASE_NEURONS_Z_REMOTENESS,
 )
 
-sl = spike_logger.SpikeLogger()
-br = brain.Brain(sl)
+sl = None
+cal = None
+# sl = spike_logger.SpikeLogger()
+# cal = connection_activity_logger.ConnectionActivityLogger()
+br = brain.Brain(sl, cal)
+
 for nr in range(len(input_neurons)):
     br.attach_neuron(input_neurons[nr])
 
@@ -311,6 +320,15 @@ all_connections += generators.generate_neurons_connections(
     br,
 )
 """
+
+
+with open("connections.txt", "a") as myfile:
+    for connection in all_connections:
+        myfile.write(
+            connection.from_neuron.get_raw_string_location('.')
+            + "-"
+            + connection.to_neuron.get_raw_string_location('.')
+            + "\n")
 
 # Разбрасываем соединения по нейронам
 for connection in all_connections:

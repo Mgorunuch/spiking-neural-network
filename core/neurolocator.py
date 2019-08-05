@@ -71,7 +71,9 @@ class Neurolocator:
     @staticmethod
     def create_base_neurons(
             create_neuron_function,
-            x_coord,
+            x_from,
+            x_to,
+            x_remoteness,
 
             y_from,
             y_to,
@@ -86,7 +88,9 @@ class Neurolocator:
         с небольшим смещением по оси Y / X в одну из сторон
 
         :param create_neuron_function: Функция для генерации обычных нейронов
-        :param x_coord: Координата X (статический параметр)
+        :param x_from: С данной X координаты идет генерация
+        :param x_to: Да данной X координаты идет генерация
+        :param x_remoteness: Удаленность нейронов друг от друга по оси X
 
         :param y_from: С данной Y координаты идет генерация
         :param y_to: Да данной Y координаты идет генерация
@@ -105,9 +109,14 @@ class Neurolocator:
             y = y_from
 
             while y < y_to:
-                neurons.append(
-                    create_neuron_function(x_coord, y, z)
-                )
+                x = x_from
+
+                while x < x_to:
+                    neurons.append(
+                        create_neuron_function(x, y, z)
+                    )
+                    x += x_remoteness
+
                 y += y_remoteness
 
             z += z_remoteness

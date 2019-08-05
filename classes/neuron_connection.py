@@ -1,3 +1,8 @@
+import threading
+
+print_lock = threading.Lock()
+
+
 class NeuronConnection:
     def __init__(
             self,
@@ -8,7 +13,7 @@ class NeuronConnection:
             before_proceed_function=None,
             after_proceed_function=None,
             inactivity_function=None,
-            current_milliseconds=0
+            current_milliseconds=0,
     ):
         """
         :param from_neuron: От какого нейрона идет сигнал Neuron
