@@ -238,6 +238,10 @@ def create_connection_function(from_neuron, to_neuron):
     )
 
 
+def create_signal_function(activated_neuron, spike_power):
+    return signal.Signal(spike_power)
+
+
 input_neurons = neurolocator.Neurolocator.create_input_neurons(
     create_neuron_function=create_input_neuron_function,
     count_per_row=INPUT_NEURONS_COUNT_PER_ROW,
@@ -275,7 +279,7 @@ sl = None
 cal = None
 # sl = spike_logger.SpikeLogger()
 # cal = connection_activity_logger.ConnectionActivityLogger()
-br = brain.Brain(sl, cal)
+br = brain.Brain(create_signal_function, sl, cal)
 
 for nr in range(len(input_neurons)):
     br.attach_neuron(input_neurons[nr])

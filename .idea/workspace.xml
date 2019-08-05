@@ -1,18 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="Readme update">
-      <change afterPath="$PROJECT_DIR$/classes/connection_activity_logger.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/connection_activity.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/connections.txt" afterDir="false" />
+    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/brain.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/brain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/neuron_connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/neuron_connection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/neurolocator.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/neurolocator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/drawer/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/drawer/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neurons.txt" beforeDir="false" afterPath="$PROJECT_DIR$/neurons.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spikes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/spikes.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +35,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="signal-history" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1OYFm99eVpUsTIxBdMVs1iZ5TU8" />
@@ -148,9 +145,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Unittests in unittests.py" />
+        <item itemvalue="Python.main" />
+        <item itemvalue="JavaScript Debug.index.html" />
         <item itemvalue="JavaScript Debug.index.html" />
         <item itemvalue="Python.main" />
-        <item itemvalue="Python tests.Unittests in unittests.py" />
       </list>
     </recent_temporary>
   </component>
@@ -197,7 +196,7 @@
       <workItem from="1564931618607" duration="736000" />
       <workItem from="1564939768578" duration="3034000" />
       <workItem from="1564951274887" duration="4771000" />
-      <workItem from="1564972375026" duration="77000" />
+      <workItem from="1564972375026" duration="1131000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1563469888983</created>
@@ -290,7 +289,14 @@
       <option name="project" value="LOCAL" />
       <updated>1564886888653</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Loggers and drowers">
+      <created>1564972482558</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1564972482558</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -367,7 +373,8 @@
     <MESSAGE value="new location class" />
     <MESSAGE value="Working version" />
     <MESSAGE value="Readme update" />
-    <option name="LAST_COMMIT_MESSAGE" value="Readme update" />
+    <MESSAGE value="Loggers and drowers" />
+    <option name="LAST_COMMIT_MESSAGE" value="Loggers and drowers" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
