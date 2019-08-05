@@ -2,8 +2,8 @@ import threading
 
 
 class NeuroThread(threading.Thread):
-    def __init__(self, queue, neuron, brain):
-        threading.Thread.__init__(self, args=())
+    def __init__(self, queue, neuron, brain, lock):
+        threading.Thread.__init__(self, args=(lock,))
         self.queue = queue
         self.daemon = True
         self.neuron = neuron

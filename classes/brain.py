@@ -83,6 +83,7 @@ class Brain:
 
             if self.spike_logger is not None:
                 with print_lock:
+                    print('Spike' + "\n")
                     self.spike_logger.add_spike(neuron)
                     for connection in connections:
                         if self.connection_logger is not None:

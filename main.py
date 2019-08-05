@@ -1,5 +1,5 @@
 import queue
-from core import neurolocator
+from core import neurolocator, neuroplasticity_processor
 from classes import neuron_connection, neuro_thread, signal, brain, neuron, location, spike_logger, connection_activity_logger
 from receptors.encoders import text_message_encoder
 from receptors.decoders import text_message_decoder
@@ -7,7 +7,7 @@ from receptors import decoder, encoder
 import threading
 import generators
 
-print_lock = threading.Lock()
+lock = threading.Lock()
 
 MAIN_X_COORD = 1
 MAIN_Y_COORD = 1
@@ -107,6 +107,7 @@ def neuron_apply_signal_function(neuron_instance, input_signal, current_ms):
     if neuron_instance.inactive_to_ms > current_ms:
         return
 
+    neuron_instance.prev_signal = input_signal
     neuron_instance.power += input_signal.power
 
 
@@ -137,7 +138,14 @@ def neuron_after_spike_function(neuron_instance, current_ms):
 
 
 def output_neuron_after_spike_function(neuron_instance, current_ms):
-    with print_lock:
+    with lock:
+        is_valid = False
+        response_result = input('Is response valid? y/n (n)')
+
+        if response_result == 'y':
+            is_valid = True
+
+        neuroplasticity_processor.NeuroplasticityProcessor.proceed_output_plasticity(neuron_instance, is_valid)
         print("Output spike!")
 
 
@@ -209,7 +217,12 @@ TMP_created_connections = {}
 
 # Функция проработки сигнала в соединении
 def connection_proceed_function(connection_instance, output_signal):
+    output_signal.power = output_signal.power * connection_instance.multiplier
     connection_instance.to_neuron.get_thread().get_queue().put(output_signal)
+
+
+def connection_set_up_function(connection_instance):
+    connection_instance.multiplier = 5
 
 
 # Фунция для создания соединения
@@ -235,11 +248,14 @@ def create_connection_function(from_neuron, to_neuron):
         from_neuron=from_neuron,
         to_neuron=to_neuron,
         proceed_function=connection_proceed_function,
+        set_up=connection_set_up_function,
     )
 
 
 def create_signal_function(activated_neuron, spike_power):
-    return signal.Signal(spike_power)
+    prev_signal = activated_neuron.prev_signal
+
+    return signal.Signal(power=spike_power, prev_signal=prev_signal, from_neuron=activated_neuron)
 
 
 input_neurons = neurolocator.Neurolocator.create_input_neurons(
@@ -341,7 +357,7 @@ for connection in all_connections:
 # Создаем потоки для запуска мозга
 for neuron in input_neurons + base_neurons + output_neurons:
     q = queue.Queue()
-    thread = neuro_thread.NeuroThread(q, neuron, br)
+    thread = neuro_thread.NeuroThread(q, neuron, br, lock)
     neuron.set_thread(thread)
 
 # Запускаем мозг

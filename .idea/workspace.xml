@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="">
+    <list default="true" id="e69c6bf4-7ec4-4dd7-8ac4-d714223e9714" name="Default Changelist" comment="signal creation function">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/brain.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/brain.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/neuro_thread.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/neuro_thread.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/signal.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/signal.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/connections.txt" beforeDir="false" afterPath="$PROJECT_DIR$/connections.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/neuroplasticity_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/neuroplasticity_processor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neurons.txt" beforeDir="false" afterPath="$PROJECT_DIR$/neurons.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,7 +42,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="signal-history" />
+        <entry key="$PROJECT_DIR$" value="master" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -75,7 +80,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JavaScript Debug.index.html">
+  <component name="RunManager" selected="Python.main">
     <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/spiking-test/drawer/index.html" useBuiltInWebServerPort="true">
       <method v="2" />
     </configuration>
@@ -105,9 +110,6 @@
       <module name="spiking-test" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -145,9 +147,9 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Unittests in unittests.py" />
         <item itemvalue="Python.main" />
         <item itemvalue="JavaScript Debug.index.html" />
+        <item itemvalue="Python tests.Unittests in unittests.py" />
         <item itemvalue="JavaScript Debug.index.html" />
         <item itemvalue="Python.main" />
       </list>
@@ -196,7 +198,8 @@
       <workItem from="1564931618607" duration="736000" />
       <workItem from="1564939768578" duration="3034000" />
       <workItem from="1564951274887" duration="4771000" />
-      <workItem from="1564972375026" duration="1131000" />
+      <workItem from="1564972375026" duration="4474000" />
+      <workItem from="1565029970935" duration="4708000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1563469888983</created>
@@ -296,7 +299,14 @@
       <option name="project" value="LOCAL" />
       <updated>1564972482558</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="signal creation function">
+      <created>1564973522027</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1564973522027</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -374,7 +384,8 @@
     <MESSAGE value="Working version" />
     <MESSAGE value="Readme update" />
     <MESSAGE value="Loggers and drowers" />
-    <option name="LAST_COMMIT_MESSAGE" value="Loggers and drowers" />
+    <MESSAGE value="signal creation function" />
+    <option name="LAST_COMMIT_MESSAGE" value="signal creation function" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -388,7 +399,7 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/spiking_test$main.coverage" NAME="main Coverage Results" MODIFIED="1564886443254" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/spiking_test$main.coverage" NAME="main Coverage Results" MODIFIED="1565033358957" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/spiking_test$Unittests_for_unittests_TestBrainMethods.coverage" NAME="Unittests for unittests.TestBrainMethods Coverage Results" MODIFIED="1563296902525" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/v3" />
     <SUITE FILE_PATH="coverage/spiking_test$Unittests_in_unittests_py.coverage" NAME="Unittests in unittests.py Coverage Results" MODIFIED="1563297475991" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/v3" />
     <SUITE FILE_PATH="coverage/spiking_test$Unittests_for_unittests_TestBrainMethods_test_detach_neuron.coverage" NAME="Unittests for unittests.TestBrainMethods.test_detach_neuron Coverage Results" MODIFIED="1563297057604" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/v3" />
