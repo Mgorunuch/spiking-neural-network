@@ -3,7 +3,7 @@ from receptors import decoder
 
 class TextMessageDecoder(decoder.Decoder):
     def __init__(self):
-        self.letters = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя .,?°'.split()
+        self.letters = list('абвгдеёжзийклмнопрстуфхцчшщъыьэюя .,?°')
 
     def get_required_neurons_count(self):
         return len(self.letters)

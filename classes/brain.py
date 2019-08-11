@@ -1,8 +1,4 @@
 import helpers
-from classes import signal
-import threading
-
-print_lock = threading.Lock()
 
 
 class Brain:
@@ -11,15 +7,23 @@ class Brain:
     Является основной единицой для хранения данных.
     """
 
-    def __init__(self, create_signal_function, spike_logger=None, connection_logger=None):
+    def __init__(self, lock, create_signal_function, spike_logger=None, connection_logger=None, timer=None):
+        self.lock = lock
         self.spike_logger = spike_logger
         self.connection_logger = connection_logger
         self.create_signal_function = create_signal_function
+        self.timer = timer
+        self.connection_power_modifier = 0
+        self.connection_power_modifier_to = 0
 
     neurons = {}
 
+    def set_connection_power_modifier(self, new_mod, to_ms):
+        self.connection_power_modifier = new_mod
+        self.connection_power_modifier_to = self.get_current_ms() + to_ms
+
     def get_current_ms(self):
-        return helpers.current_milliseconds_time()
+        return self.timer.get_time()
 
     def attach_neuron(self, neuron):
         """
@@ -52,6 +56,9 @@ class Brain:
         neuron = neuro_thread.neuron
         current_ms = self.get_current_ms()
 
+        if self.connection_power_modifier != 0 and self.connection_power_modifier_to < self.get_current_ms():
+            self.connection_power_modifier = 0
+
         # Просчитываем неактивность нейрона
         ms_passed = current_ms - neuron.get_last_activity()
         neuron.proceed_inactivity(ms_passed)
@@ -62,32 +69,36 @@ class Brain:
         # Проверяем спайк
         has_spike = neuron.has_spike(current_ms)
         if has_spike is True:
-            # Начинаем работу со спайком
-            neuron.before_spike(current_ms)
+            with self.lock:
+                # Начинаем работу со спайком
+                neuron.before_spike(current_ms)
 
-            spike_power = neuron.get_spike_power()
-            output_signal = self.create_signal_function(neuron, spike_power)
+                spike_power = neuron.get_spike_power()
 
-            connections = neuron.connections.values()
+                if self.connection_power_modifier != 0:
+                    spike_power = spike_power * self.connection_power_modifier
 
-            # Начнаем отправлять сигналы в связвнные нейроны
-            for connection in connections:
-                # Просчитываем неактивность и отправляем данные в сигнал
-                conn_ms_passed = connection.get_last_activity()
-                connection.proceed_inactivity(conn_ms_passed)
+                print("Spike " + neuron.get_raw_string_location('.') + " | " + str(spike_power))
+                output_signal = self.create_signal_function(neuron, spike_power)
 
-                connection.proceed(output_signal)
+                connections = neuron.connections.values()
 
-                # Регистрируем активность в соединении
-                connection.register_activity(current_ms)
+                # Начнаем отправлять сигналы в связвнные нейроны
+                for connection in connections:
+                    # Просчитываем неактивность и отправляем данные в сигнал
+                    conn_ms_passed = connection.get_last_activity()
+                    connection.proceed_inactivity(conn_ms_passed)
 
-            if self.spike_logger is not None:
-                with print_lock:
-                    print('Spike' + "\n")
-                    self.spike_logger.add_spike(neuron)
+                    connection.proceed(output_signal)
+
+                    # Регистрируем активность в соединении
+                    connection.register_activity(current_ms)
+
+                if self.spike_logger is not None:
+                    self.spike_logger.add_spike(self, neuron)
                     for connection in connections:
                         if self.connection_logger is not None:
-                            self.connection_logger.log(connection)
+                            self.connection_logger.log(self, connection)
 
             # Заканчиваем работу со спайком
             neuron.after_spike(current_ms)

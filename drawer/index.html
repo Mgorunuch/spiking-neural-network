@@ -53,6 +53,7 @@
         let connection_activities = {};
         let currentTime = '';
         let interval = undefined;
+        let sorted_time = [];
 
         const parseData = () => {
             const rawNeurons = document.getElementById('neurons').value;
@@ -64,7 +65,7 @@
                 if (connection === '') {
                     return;
                 }
-                connections.push(connection.split('-'));
+                connections.push(connection.split(':'));
             });
 
             const rawSpikes = document.getElementById('spikes').value;
@@ -107,8 +108,20 @@
                 }
             });
 
+            const activity_times = Object.keys(connection_activities);
+            const spike_times = Object.keys(spikes);
+
+            sorted_time = sorted_time.concat(
+                activity_times.map(Number),
+            );
+            sorted_time = sorted_time.concat(
+                spike_times.map(Number),
+            );
+
+            sorted_time = sorted_time.sort((a, b) => a - b);
+
             console.log({
-                spikes, neurons, connections
+                spikes, neurons, connections, connection_activities
             });
         };
 
@@ -120,31 +133,31 @@
         };
 
         const getNextTime = () => {
-            const index = Object.keys(spikes).indexOf(currentTime);
+            const index = sorted_time.indexOf(currentTime);
             let newIndex;
 
-            if (index >= Object.keys(spikes).length) {
+            if (index >= sorted_time.length) {
                 newIndex = 0;
             } else {
                 newIndex = index + 1;
             }
 
-            updateCurrentTime(Object.keys(spikes)[newIndex]);
+            updateCurrentTime(sorted_time[newIndex]);
             animate();
             render();
         };
 
         const getPrevTime = () => {
-            const index = Object.keys(spikes).indexOf(currentTime);
+            const index = sorted_time.indexOf(currentTime);
             let newIndex;
 
             if (index === 0) {
-                newIndex = Object.keys(spikes).length - 1;
+                newIndex = sorted_time.length - 1;
             } else {
                 newIndex = index - 1;
             }
 
-            updateCurrentTime(Object.keys(spikes)[newIndex]);
+            updateCurrentTime(sorted_time[newIndex]);
             animate();
             render();
         };
@@ -157,11 +170,16 @@
             lineBaseMaterial.transparent = true;
             lineBaseMaterial.opacity = .5;
 
-            const lineActiveMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff, flatShading: true } );
+            const lineActiveMaterial = new THREE.LineBasicMaterial( { color: 0xffa500, flatShading: true } );
             lineActiveMaterial.linewidth = 5;
 
             Object.keys(neuron_meshes).forEach(neuron => {
                 const mesh = neuron_meshes[neuron];
+
+                if (!spikes[currentTime]) {
+                    mesh.material = baseMaterial;
+                    return;
+                }
 
                 if (spikes[currentTime].includes(neuron)) {
                     mesh.material = activeMaterial;
@@ -205,26 +223,25 @@
         };
 
         const startAnimation = () => {
-            updateCurrentTime(Object.keys(spikes)[0]);
+            updateCurrentTime(sorted_time[0]);
 
             interval = setInterval(() => {
                 getNextTime();
-                let keys = Object.keys(spikes);
-                if (keys[keys.length - 1] === currentTime) {
+                if (sorted_time[sorted_time.length - 1] === currentTime) {
                     clearInterval(interval);
                 }
-            }, 250);
+            }, 100);
         };
 
         const init = () => {
-            updateCurrentTime(Object.keys(spikes)[0]);
+            updateCurrentTime(sorted_time[0]);
 
             camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
             camera.position.z = 100;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color( 0xcccccc );
-            scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+            scene.background = new THREE.Color( 0x282828 );
+            scene.fog = new THREE.FogExp2( 0x282828, 0.002 );
 
             const geometry = new THREE.BoxGeometry( 1, 1, 1 );
             const material = new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } );
@@ -246,7 +263,7 @@
                 scene.add( cube );
             });
 
-            const lineMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+            const lineMaterial = new THREE.LineBasicMaterial( { color: 0x000000 } );
             lineMaterial.transparent = true;
             lineMaterial.opacity = .5;
 
@@ -261,7 +278,7 @@
 
                 const line = new THREE.Line( lineGeometry, lineMaterial );
 
-                line_meshes[connection[0] + '-' + connection[1]] = line;
+                line_meshes[connection[0] + ':' + connection[1]] = line;
 
                 scene.add( line );
             });

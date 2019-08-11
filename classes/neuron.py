@@ -11,6 +11,7 @@ class Neuron:
             get_spike_power_function=None,
             is_output=False,
             is_input=False,
+            custom_key='',
             current_milliseconds=0,
     ):
         self.location = location
@@ -25,6 +26,7 @@ class Neuron:
         self.thread = None
         self.is_output = is_output
         self.is_input = is_input
+        self.custom_key = custom_key
         if set_up_function is not None:
             set_up_function(self)
 

@@ -10,9 +10,12 @@ class Neurolocator:
             count_per_row=1,
             rows=1,
             remoteness=1,
+            remoteness_scatter_x=0,
+            remoteness_scatter_y=0,
+            remoteness_scatter_z=0,
             x_offset=0,
             y_offset=0,
-            z_offset=0
+            z_offset=0,
     ):
         """
         ВНИМАНИЕ! Глубина - Z. Строки создаются по оси X. Движение происходит по оси Y.
@@ -21,6 +24,9 @@ class Neurolocator:
         :param count_per_row: Количество на строку
         :param rows: Строк
         :param remoteness: Отдаленность
+        :param remoteness_scatter_x: Разрос по оси x
+        :param remoteness_scatter_y: Разрос по оси y
+        :param remoteness_scatter_z: Разрос по оси z
         :param x_offset: Базовый сдвиг по координате x
         :param y_offset: Базовый сдвиг по координате y
         :param z_offset: Базовый сдвиг по координате z
@@ -29,9 +35,13 @@ class Neurolocator:
         neurons = []
         for row in range(rows):
             for neuron_number in range(count_per_row):
-                x = row * remoteness + x_offset
-                y = neuron_number * remoteness + y_offset
-                z = 0 + z_offset
+                float_x = Neurolocator.get_float_remoteness(remoteness_scatter_x)
+                float_y = Neurolocator.get_float_remoteness(remoteness_scatter_y)
+                float_z = Neurolocator.get_float_remoteness(remoteness_scatter_z)
+
+                x = row * remoteness + x_offset - float_x
+                y = neuron_number * remoteness + y_offset - float_y
+                z = 0 + z_offset - float_z
                 neurons.append(create_neuron_function(x, y, z))
 
         return neurons
@@ -42,6 +52,9 @@ class Neurolocator:
             count_per_row=1,
             rows=1,
             remoteness=1,
+            remoteness_scatter_x=0,
+            remoteness_scatter_y=0,
+            remoteness_scatter_z=0,
             x_offset=0,
             y_offset=0,
             z_offset=0
@@ -53,6 +66,9 @@ class Neurolocator:
         :param count_per_row: Количество на строку
         :param rows: Строк
         :param remoteness: Отдаленность
+        :param remoteness_scatter_x: Разрос по оси x
+        :param remoteness_scatter_y: Разрос по оси y
+        :param remoteness_scatter_z: Разрос по оси z
         :param x_offset: Базовый сдвиг по координате x
         :param y_offset: Базовый сдвиг по координате y
         :param z_offset: Базовый сдвиг по координате z
@@ -61,9 +77,13 @@ class Neurolocator:
         neurons = []
         for row in range(rows):
             for neuron_number in range(count_per_row):
-                x = neuron_number * remoteness + x_offset
-                y = row * remoteness + y_offset
-                z = 0 + z_offset
+                float_x = Neurolocator.get_float_remoteness(remoteness_scatter_x)
+                float_y = Neurolocator.get_float_remoteness(remoteness_scatter_y)
+                float_z = Neurolocator.get_float_remoteness(remoteness_scatter_z)
+
+                x = neuron_number * remoteness + x_offset - float_x
+                y = row * remoteness + y_offset - float_y
+                z = 0 + z_offset - float_z
                 neurons.append(create_neuron_function(x, y, z))
 
         return neurons
@@ -82,6 +102,10 @@ class Neurolocator:
             z_from,
             z_to,
             z_remoteness,
+
+            remoteness_scatter_x=0,
+            remoteness_scatter_y=0,
+            remoteness_scatter_z=0,
     ):
         """
         Нейроны генерируются по квадрате Z на плоскость
@@ -99,6 +123,11 @@ class Neurolocator:
         :param z_from: С данной Z координаты идет генерация
         :param z_to: Да данной Z координаты идет генерация
         :param z_remoteness: Удаленность нейронов по оси Z
+
+        :param remoteness_scatter_x: Разрос по оси x
+        :param remoteness_scatter_y: Разрос по оси y
+        :param remoteness_scatter_z: Разрос по оси z
+
         :return:
         """
         neurons = []
@@ -112,8 +141,16 @@ class Neurolocator:
                 x = x_from
 
                 while x < x_to:
+                    float_x = Neurolocator.get_float_remoteness(remoteness_scatter_x)
+                    float_y = Neurolocator.get_float_remoteness(remoteness_scatter_y)
+                    float_z = Neurolocator.get_float_remoteness(remoteness_scatter_z)
+
                     neurons.append(
-                        create_neuron_function(x, y, z)
+                        create_neuron_function(
+                            x - float_x,
+                            y - float_y,
+                            z - float_z,
+                        )
                     )
                     x += x_remoteness
 
@@ -232,3 +269,9 @@ class Neurolocator:
             )
 
         return arr
+
+    @staticmethod
+    def get_float_remoteness(remoteness_scatter):
+        remoteness_from = 0 - remoteness_scatter
+        remoteness_to = 0 + remoteness_scatter
+        return random.randint(remoteness_from, remoteness_to)
